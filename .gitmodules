@@ -1,0 +1,6 @@
+[submodule "jate/extern/spdlog"]
+	path = jate/extern/spdlog
+	url = https://github.com/gabime/spdlog.git
+[submodule "jate/extern/glfw"]
+	path = jate/extern/glfw
+	url = https://github.com/glfw/glfw
