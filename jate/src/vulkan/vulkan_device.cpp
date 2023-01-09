@@ -2,13 +2,17 @@
 
 #include <spdlog/spdlog.h>
 #include <algorithm>
+#include <set>
 
 #include <cassert>
 
 namespace jate::vulkan
 {
-    VulkanDevice::VulkanDevice(const VulkanInstance& instance) : m_instance(instance)
+    VulkanDevice::VulkanDevice(const VulkanInstance& instance, Window& window) : m_instance(instance), m_window(window)
     {
+        m_window.attachVulkanInstance(instance);
+        m_window.createWindowSurface();
+
         init_pickPhysicalDevice();
         if (m_physicalDevice != nullptr)
         {
@@ -19,6 +23,8 @@ namespace jate::vulkan
     VulkanDevice::~VulkanDevice()
     {
         vkDestroyDevice(m_device, nullptr);
+
+        m_window.freeWindowSurface();
     }
 
     // Init functions
@@ -61,12 +67,18 @@ namespace jate::vulkan
         QueueFamilyIndices indices = findQueueFamilies(m_physicalDevice);
 
         // Device queue
-        VkDeviceQueueCreateInfo queueCreateInfo{};
-        queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-        queueCreateInfo.queueFamilyIndex = indices.graphicsQueueFamily.value();
-        queueCreateInfo.queueCount = 1;
+        std::set<uint32_t> uniqueQueueFamilies = {indices.graphicsQueueFamily.value(), indices.presentQueueFamily.value()};
+        std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
+
         float queuePriority = 1.0f;
-        queueCreateInfo.pQueuePriorities = &queuePriority;
+        for (uint32_t queueFamily : uniqueQueueFamilies) {
+            VkDeviceQueueCreateInfo queueCreateInfo{};
+            queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+            queueCreateInfo.queueFamilyIndex = queueFamily;
+            queueCreateInfo.queueCount = 1;
+            queueCreateInfo.pQueuePriorities = &queuePriority;
+            queueCreateInfos.push_back(queueCreateInfo);
+        }
 
         // Device features
         VkPhysicalDeviceFeatures deviceFeatures{};
@@ -74,8 +86,8 @@ namespace jate::vulkan
         // Creating the logical device itself
         VkDeviceCreateInfo createInfo{};
         createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-        createInfo.pQueueCreateInfos = &queueCreateInfo;
-        createInfo.queueCreateInfoCount = 1;
+        createInfo.pQueueCreateInfos = queueCreateInfos.data();
+        createInfo.queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfos.size());
         createInfo.pEnabledFeatures = &deviceFeatures;
 
         // Device validation layers are not relevant for modern Vulkan implementations
@@ -87,6 +99,7 @@ namespace jate::vulkan
 
         // Retrieve queues
         vkGetDeviceQueue(m_device, indices.graphicsQueueFamily.value(), 0, &m_graphicsQueue);
+        vkGetDeviceQueue(m_device, indices.presentQueueFamily.value(), 0, &m_presentQueue);
     }
 
     int32_t VulkanDevice::ratePhysicalDevice(VkPhysicalDevice device) const
@@ -129,10 +142,15 @@ namespace jate::vulkan
         vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, queueFamilies.data());
         assert(queueFamilies.size() == queueFamilyCount && "vkGetPhysicalDeviceQueueFamilyProperties did not returned as many elements as expected");
 
-        for (size_t i = 0; i < queueFamilyCount; i++)
+        for (uint32_t i = 0; i < queueFamilyCount; i++)
         {
             if (queueFamilies[i].queueFlags & VK_QUEUE_GRAPHICS_BIT)
-                indices.graphicsQueueFamily = static_cast<uint32_t>(i);
+                indices.graphicsQueueFamily = i;
+
+            VkBool32 presentSupport = false;
+            vkGetPhysicalDeviceSurfaceSupportKHR(device, i, m_window.getVulkanSurface(), &presentSupport);
+            if (presentSupport)
+                indices.presentQueueFamily = i;
         }
 
         return indices;

@@ -2,6 +2,7 @@
 #define Jate_VulkanDevice_H
 
 #include <jate/vulkan/vulkan_instance.h>
+#include <jate/window/window.h>
 
 #include <optional>
 
@@ -10,7 +11,7 @@ namespace jate::vulkan
     class VulkanDevice
     {
     public:
-        VulkanDevice(const VulkanInstance& instance);
+        VulkanDevice(const VulkanInstance& instance, Window& window);
         ~VulkanDevice();
 
         // No copy allowed
@@ -25,8 +26,9 @@ namespace jate::vulkan
         struct QueueFamilyIndices
         {
             std::optional<uint32_t> graphicsQueueFamily;
+            std::optional<uint32_t> presentQueueFamily;
 
-            bool isComplete() const { return graphicsQueueFamily.has_value(); }
+            bool isComplete() const { return graphicsQueueFamily.has_value() && presentQueueFamily.has_value(); }
         };
 
         /// @brief Assigns a score to a physical device.
@@ -41,12 +43,15 @@ namespace jate::vulkan
         QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device) const;
 
         const VulkanInstance& m_instance;
+        Window& m_window;
+
         VkPhysicalDevice m_physicalDevice;
 
         VkDevice m_device;
 
         // Queues
         VkQueue m_graphicsQueue;
+        VkQueue m_presentQueue;
     };
 }
 

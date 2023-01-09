@@ -5,7 +5,7 @@ namespace jate
     Application::Application() 
         : m_window("My window", 800, 600), 
           m_vulkanInstance("My app"),
-          m_vulkanDevice(m_vulkanInstance)
+          m_vulkanDevice(m_vulkanInstance, m_window)
     {
 
     }

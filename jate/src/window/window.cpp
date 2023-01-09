@@ -7,6 +7,11 @@ namespace jate
     Window::Window(const std::string& name, uint16_t width, uint16_t height)
         : m_name(name), m_width(width), m_height(height)
     {
+        init_createWindow();
+    }
+
+    void Window::init_createWindow()
+    {
         if (!glfwInit())
         {
             spdlog::critical("Could not initialize GLFW.");
@@ -27,6 +32,20 @@ namespace jate
         // Set callbacks
         glfwSetWindowUserPointer(m_glfwWindow, this);
 		glfwSetFramebufferSizeCallback(m_glfwWindow, frameBufferResizedCallback);
+    }
+
+    void Window::createWindowSurface()
+    {
+        assert(m_vkInstance != nullptr && "Window::createWindowSurface should not be called before Window::attachVulkanInstance");
+
+        if (glfwCreateWindowSurface(m_vkInstance, m_glfwWindow, nullptr, &m_vkSurface) != VK_SUCCESS) {
+            spdlog::error("Failed to create window surface!");
+        }
+    }
+
+    void Window::freeWindowSurface()
+    {
+        vkDestroySurfaceKHR(m_vkInstance, m_vkSurface, nullptr);
     }
 
     Window::~Window()

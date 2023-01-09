@@ -4,6 +4,8 @@
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 
+#include <jate/vulkan/vulkan_instance.h>
+
 #include <string>
 
 namespace jate
@@ -18,6 +20,11 @@ namespace jate
         Window& operator=(const Window&) = delete;
 
         bool shouldClose() const { return glfwWindowShouldClose(m_glfwWindow); }
+        VkSurfaceKHR getVulkanSurface() const { return m_vkSurface; }
+
+        void attachVulkanInstance(const vulkan::VulkanInstance& vulkanInstance) { m_vkInstance = vulkanInstance.getVkInstance(); }
+        void createWindowSurface();
+        void freeWindowSurface();
 
     private:
         uint16_t m_width, m_height;
@@ -25,6 +32,12 @@ namespace jate
         bool m_frameBufferResized = false;
 
         GLFWwindow* m_glfwWindow;
+
+        VkInstance m_vkInstance;
+        VkSurfaceKHR m_vkSurface;
+
+        // Init functions
+        void init_createWindow();
 
         static void frameBufferResizedCallback(GLFWwindow* glfwWindow, int width, int height);
     };
