@@ -20,6 +20,7 @@ namespace jate::vulkan
     private:
         // Init functions
         void init_pickPhysicalDevice();
+        void init_createLogicalDevice();
 
         struct QueueFamilyIndices
         {
@@ -41,6 +42,11 @@ namespace jate::vulkan
 
         const VulkanInstance& m_instance;
         VkPhysicalDevice m_physicalDevice;
+
+        VkDevice m_device;
+
+        // Queues
+        VkQueue m_graphicsQueue;
     };
 }
 

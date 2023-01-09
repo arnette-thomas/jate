@@ -10,11 +10,15 @@ namespace jate::vulkan
     VulkanDevice::VulkanDevice(const VulkanInstance& instance) : m_instance(instance)
     {
         init_pickPhysicalDevice();
+        if (m_physicalDevice != nullptr)
+        {
+            init_createLogicalDevice();
+        }
     }
 
     VulkanDevice::~VulkanDevice()
     {
-
+        vkDestroyDevice(m_device, nullptr);
     }
 
     // Init functions
@@ -50,6 +54,39 @@ namespace jate::vulkan
         }
 
         m_physicalDevice = pickedDevice.first;
+    }
+
+    void VulkanDevice::init_createLogicalDevice()
+    {
+        QueueFamilyIndices indices = findQueueFamilies(m_physicalDevice);
+
+        // Device queue
+        VkDeviceQueueCreateInfo queueCreateInfo{};
+        queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+        queueCreateInfo.queueFamilyIndex = indices.graphicsQueueFamily.value();
+        queueCreateInfo.queueCount = 1;
+        float queuePriority = 1.0f;
+        queueCreateInfo.pQueuePriorities = &queuePriority;
+
+        // Device features
+        VkPhysicalDeviceFeatures deviceFeatures{};
+
+        // Creating the logical device itself
+        VkDeviceCreateInfo createInfo{};
+        createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
+        createInfo.pQueueCreateInfos = &queueCreateInfo;
+        createInfo.queueCreateInfoCount = 1;
+        createInfo.pEnabledFeatures = &deviceFeatures;
+
+        // Device validation layers are not relevant for modern Vulkan implementations
+
+        if (vkCreateDevice(m_physicalDevice, &createInfo, nullptr, &m_device) != VK_SUCCESS) {
+            spdlog::error("Error while creating logical device.");
+            return;
+        }
+
+        // Retrieve queues
+        vkGetDeviceQueue(m_device, indices.graphicsQueueFamily.value(), 0, &m_graphicsQueue);
     }
 
     int32_t VulkanDevice::ratePhysicalDevice(VkPhysicalDevice device) const
