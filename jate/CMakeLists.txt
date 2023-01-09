@@ -44,6 +44,7 @@ SET(JATE_SOURCES
     src/window/window.cpp
 
     src/vulkan/vulkan_instance.cpp
+    src/vulkan/vulkan_device.cpp
 )
 
 add_library(${PROJECT_NAME}

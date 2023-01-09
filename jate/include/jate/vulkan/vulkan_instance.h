@@ -1,3 +1,6 @@
+#ifndef Jate_VulkanInstance_H
+#define Jate_VulkanInstance_H
+
 #include <string>
 #include <vector>
 
@@ -14,7 +17,9 @@ namespace jate::vulkan
 
         // Disable copy
         VulkanInstance(const VulkanInstance&) = delete;
-        void operator=(const VulkanInstance&) = delete;
+        VulkanInstance& operator=(const VulkanInstance&) = delete;
+
+        VkInstance getVkInstance() const { return m_instance; }
 
     private:
         void setupValidationLayerDebugMessenger();
@@ -23,6 +28,8 @@ namespace jate::vulkan
         std::vector<const char*> getExtensions() const;
         bool checkValidationLayerSupport() const;
 
+        /// @brief Callback called by the validation layer whenever an event is triggered
+        /// @return Whether the vulkan call that triggered the event should be aborted 
         static VKAPI_ATTR VkBool32 VKAPI_CALL validationLayerDebugCallback(
             VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
             VkDebugUtilsMessageTypeFlagsEXT messageType,
@@ -48,3 +55,5 @@ namespace jate::vulkan
         static const bool ms_ENABLE_VERBOSE_DEBUG_MESSAGES = false;
     };
 }
+
+#endif

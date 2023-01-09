@@ -1,3 +1,6 @@
+#ifndef Jate_Window_H
+#define Jate_Window_H
+
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 
@@ -12,7 +15,7 @@ namespace jate
         ~Window();
 
         Window(const Window&) = delete;
-        void operator=(const Window&) = delete;
+        Window& operator=(const Window&) = delete;
 
         bool shouldClose() const { return glfwWindowShouldClose(m_glfwWindow); }
 
@@ -27,3 +30,5 @@ namespace jate
     };
     
 } // namespace jate
+
+#endif
