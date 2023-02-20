@@ -17,7 +17,7 @@ namespace jate
         // Main loop
         while (!m_window.shouldClose())
         {
-            glfwPollEvents();
+            glfwWaitEvents();   // TODO use pollevents instead for main loop once we'll have actual frames, for now it used 100% CPU for nothing
         }
     }
 }

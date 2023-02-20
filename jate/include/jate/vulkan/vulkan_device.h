@@ -5,9 +5,12 @@
 #include <jate/window/window.h>
 
 #include <optional>
+#include <memory>
 
 namespace jate::vulkan
 {
+    class VulkanSwapChain;
+
     class VulkanDevice
     {
     public:
@@ -18,11 +21,6 @@ namespace jate::vulkan
         VulkanDevice(const VulkanDevice&) = delete;
         VulkanDevice& operator=(const VulkanDevice&) = delete;
 
-    private:
-        // Init functions
-        void init_pickPhysicalDevice();
-        void init_createLogicalDevice();
-
         struct QueueFamilyIndices
         {
             std::optional<uint32_t> graphicsQueueFamily;
@@ -30,6 +28,15 @@ namespace jate::vulkan
 
             bool isComplete() const { return graphicsQueueFamily.has_value() && presentQueueFamily.has_value(); }
         };
+
+        inline VkDevice getVkDevice() const { return m_device; }
+        inline VkPhysicalDevice getPhysicalDevice() const { return m_physicalDevice; }
+        inline QueueFamilyIndices getQueueFamilyIndices() const { return m_queueFamilyIndices; }
+
+    private:
+        // Init functions
+        void init_pickPhysicalDevice();
+        void init_createLogicalDevice();
 
         /// @brief Assigns a score to a physical device.
         ///        A negative score means the device is not suitable for our use.
@@ -42,12 +49,21 @@ namespace jate::vulkan
         /// @return A struct giving, for each relevant queue family, the index of the queue for the physocal device.
         QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device) const;
 
+        bool checkDeviceExtensionSupport(VkPhysicalDevice device) const;
+
+        const std::vector<const char*> m_deviceExtensions = {
+            VK_KHR_SWAPCHAIN_EXTENSION_NAME
+        };
+
         const VulkanInstance& m_instance;
         Window& m_window;
+        std::unique_ptr<VulkanSwapChain> m_swapChain;
 
         VkPhysicalDevice m_physicalDevice;
 
         VkDevice m_device;
+
+        QueueFamilyIndices m_queueFamilyIndices;
 
         // Queues
         VkQueue m_graphicsQueue;

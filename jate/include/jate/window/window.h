@@ -21,6 +21,7 @@ namespace jate
 
         bool shouldClose() const { return glfwWindowShouldClose(m_glfwWindow); }
         VkSurfaceKHR getVulkanSurface() const { return m_vkSurface; }
+        GLFWwindow* getWindowPtr() const { return m_glfwWindow; }
 
         void attachVulkanInstance(const vulkan::VulkanInstance& vulkanInstance) { m_vkInstance = vulkanInstance.getVkInstance(); }
         void createWindowSurface();

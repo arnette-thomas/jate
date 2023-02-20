@@ -45,6 +45,7 @@ SET(JATE_SOURCES
 
     src/vulkan/vulkan_instance.cpp
     src/vulkan/vulkan_device.cpp
+    src/vulkan/vulkan_swapchain.cpp
 )
 
 add_library(${PROJECT_NAME}

@@ -1,5 +1,7 @@
 #include <jate/vulkan/vulkan_device.h>
 
+#include <jate/vulkan/vulkan_swapchain.h>
+
 #include <spdlog/spdlog.h>
 #include <algorithm>
 #include <set>
@@ -17,6 +19,8 @@ namespace jate::vulkan
         if (m_physicalDevice != nullptr)
         {
             init_createLogicalDevice();
+
+            m_swapChain = std::make_unique<VulkanSwapChain>(m_window, *this);
         }
     }
 
@@ -64,10 +68,10 @@ namespace jate::vulkan
 
     void VulkanDevice::init_createLogicalDevice()
     {
-        QueueFamilyIndices indices = findQueueFamilies(m_physicalDevice);
+        m_queueFamilyIndices = findQueueFamilies(m_physicalDevice);
 
         // Device queue
-        std::set<uint32_t> uniqueQueueFamilies = {indices.graphicsQueueFamily.value(), indices.presentQueueFamily.value()};
+        std::set<uint32_t> uniqueQueueFamilies = {m_queueFamilyIndices.graphicsQueueFamily.value(), m_queueFamilyIndices.presentQueueFamily.value()};
         std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
 
         float queuePriority = 1.0f;
@@ -89,6 +93,8 @@ namespace jate::vulkan
         createInfo.pQueueCreateInfos = queueCreateInfos.data();
         createInfo.queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfos.size());
         createInfo.pEnabledFeatures = &deviceFeatures;
+        createInfo.enabledExtensionCount = static_cast<uint32_t>(m_deviceExtensions.size());
+        createInfo.ppEnabledExtensionNames = m_deviceExtensions.data();
 
         // Device validation layers are not relevant for modern Vulkan implementations
 
@@ -98,8 +104,8 @@ namespace jate::vulkan
         }
 
         // Retrieve queues
-        vkGetDeviceQueue(m_device, indices.graphicsQueueFamily.value(), 0, &m_graphicsQueue);
-        vkGetDeviceQueue(m_device, indices.presentQueueFamily.value(), 0, &m_presentQueue);
+        vkGetDeviceQueue(m_device, m_queueFamilyIndices.graphicsQueueFamily.value(), 0, &m_graphicsQueue);
+        vkGetDeviceQueue(m_device, m_queueFamilyIndices.presentQueueFamily.value(), 0, &m_presentQueue);
     }
 
     int32_t VulkanDevice::ratePhysicalDevice(VkPhysicalDevice device) const
@@ -115,8 +121,17 @@ namespace jate::vulkan
 
         QueueFamilyIndices queueFamilies = findQueueFamilies(device);
 
+        // Check if required device extensions are supported
+        if (!checkDeviceExtensionSupport(device))
+            return -1;
+
         // We need a graphics queue
         if (!queueFamilies.isComplete())
+            return -1;
+
+        // Check swap chain support
+        VulkanSwapChain::SwapChainSupportDetails swapChainSupportDetails = VulkanSwapChain::getPhysicalDeviceSwapChainSupport(device, m_window.getVulkanSurface());
+        if (swapChainSupportDetails.formats.empty() || swapChainSupportDetails.presentModes.empty())
             return -1;
 
         // Favour dedicated graphics cards
@@ -154,5 +169,22 @@ namespace jate::vulkan
         }
 
         return indices;
+    }
+
+    bool VulkanDevice::checkDeviceExtensionSupport(VkPhysicalDevice device) const
+    {
+        uint32_t extensionCount;
+        vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount, nullptr);
+
+        std::vector<VkExtensionProperties> availableExtensions(extensionCount);
+        vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount, availableExtensions.data());
+
+        std::set<std::string> requiredExtensions(m_deviceExtensions.begin(), m_deviceExtensions.end());
+
+        for (const auto& extension : availableExtensions) {
+            requiredExtensions.erase(extension.extensionName);
+        }
+
+        return requiredExtensions.empty();
     }
 }
