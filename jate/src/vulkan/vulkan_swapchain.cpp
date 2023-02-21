@@ -15,10 +15,16 @@ namespace jate::vulkan
         init_chooseSurfaceFormat();
         init_choosePresentationMode();
         init_chooseSwapExtent();
+
+        init_createSwapChain();
     }
 
     VulkanSwapChain::~VulkanSwapChain()
     {
+        for (auto imageView : m_swapChainImageViews) {
+            vkDestroyImageView(m_device.getVkDevice(), imageView, nullptr);
+        }
+
         vkDestroySwapchainKHR(m_device.getVkDevice(), m_swapChain, nullptr);
     }
 
@@ -127,6 +133,45 @@ namespace jate::vulkan
         if (vkCreateSwapchainKHR(m_device.getVkDevice(), &createInfo, nullptr, &m_swapChain) != VK_SUCCESS) {
             spdlog::error("Failed to create swap chain");
             return;
+        }
+
+        // Retrieve swap chain images
+        vkGetSwapchainImagesKHR(m_device.getVkDevice(), m_swapChain, &imageCount, nullptr);
+        m_swapChainImages.resize(imageCount);
+        vkGetSwapchainImagesKHR(m_device.getVkDevice(), m_swapChain, &imageCount, m_swapChainImages.data());
+    }
+
+    void VulkanSwapChain::init_createImageViews()
+    {
+        m_swapChainImageViews.resize(m_swapChainImages.size());
+
+        for (size_t i = 0; i < m_swapChainImages.size(); i++) {
+            VkImageViewCreateInfo createInfo{};
+            createInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+            createInfo.image = m_swapChainImages[i];
+
+            createInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+            createInfo.format = m_surfaceFormat.format;
+
+            createInfo.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
+            createInfo.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
+            createInfo.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
+            createInfo.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
+
+            createInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+
+            // No mipmapping
+            createInfo.subresourceRange.baseMipLevel = 0;
+            createInfo.subresourceRange.levelCount = 1;
+
+            // Only one layer
+            createInfo.subresourceRange.baseArrayLayer = 0;
+            createInfo.subresourceRange.layerCount = 1;
+
+            if (vkCreateImageView(m_device.getVkDevice(), &createInfo, nullptr, &m_swapChainImageViews[i]) != VK_SUCCESS) {
+                spdlog::error("Failed to create image view of index {0}", i);
+                return;
+            }
         }
     }
 

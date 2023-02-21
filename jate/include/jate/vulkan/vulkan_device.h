@@ -9,8 +9,6 @@
 
 namespace jate::vulkan
 {
-    class VulkanSwapChain;
-
     class VulkanDevice
     {
     public:
@@ -57,7 +55,6 @@ namespace jate::vulkan
 
         const VulkanInstance& m_instance;
         Window& m_window;
-        std::unique_ptr<VulkanSwapChain> m_swapChain;
 
         VkPhysicalDevice m_physicalDevice;
 

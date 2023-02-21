@@ -19,8 +19,6 @@ namespace jate::vulkan
         if (m_physicalDevice != nullptr)
         {
             init_createLogicalDevice();
-
-            m_swapChain = std::make_unique<VulkanSwapChain>(m_window, *this);
         }
     }
 

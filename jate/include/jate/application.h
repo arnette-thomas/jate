@@ -4,6 +4,7 @@
 #include <jate/window/window.h>
 #include <jate/vulkan/vulkan_instance.h>
 #include <jate/vulkan/vulkan_device.h>
+#include <jate/vulkan/vulkan_swapchain.h>
 
 namespace jate
 {
@@ -20,6 +21,7 @@ namespace jate
         Window m_window;
         vulkan::VulkanInstance m_vulkanInstance;
         vulkan::VulkanDevice m_vulkanDevice;
+        vulkan::VulkanSwapChain m_vulkanSwapChain;
     };
 }
 

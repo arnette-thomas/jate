@@ -33,7 +33,9 @@ namespace jate::vulkan
         void init_choosePresentationMode();
         void init_chooseSwapExtent();
 
-        void init_createSwapChain();    // Must be called after the various "choose" methods
+        //   must be called after the various "choose" methods
+        void init_createSwapChain();
+        void init_createImageViews();
 
         Window& m_window;
         VulkanDevice& m_device;
@@ -45,6 +47,10 @@ namespace jate::vulkan
         VkExtent2D m_swapExtent;
 
         VkSwapchainKHR m_swapChain;
+
+        std::vector<VkImage> m_swapChainImages;
+
+        std::vector<VkImageView> m_swapChainImageViews;
     };
 }
 
