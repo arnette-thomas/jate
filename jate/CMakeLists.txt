@@ -46,6 +46,8 @@ SET(JATE_SOURCES
     src/vulkan/vulkan_instance.cpp
     src/vulkan/vulkan_device.cpp
     src/vulkan/vulkan_swapchain.cpp
+    src/vulkan/vulkan_pipeline.cpp
+    src/vulkan/vulkan_vertexbuffer.cpp
 )
 
 add_library(${PROJECT_NAME}
@@ -61,6 +63,7 @@ target_include_directories(${PROJECT_NAME}
 target_link_libraries(${PROJECT_NAME}
     Vulkan::Vulkan
     glfw
+    glm::glm
 )
 
 set_target_properties(${PROJECT_NAME} PROPERTIES PUBLIC_HEADER source/convert.h)

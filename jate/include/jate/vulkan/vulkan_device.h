@@ -31,6 +31,16 @@ namespace jate::vulkan
         inline VkPhysicalDevice getPhysicalDevice() const { return m_physicalDevice; }
         inline QueueFamilyIndices getQueueFamilyIndices() const { return m_queueFamilyIndices; }
 
+        // Buffer helper function
+        void createBuffer(
+          VkDeviceSize size,
+          VkBufferUsageFlags usage,
+          VkMemoryPropertyFlags properties,
+          VkBuffer &buffer,
+          VkDeviceMemory &bufferMemory);
+
+        uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
+
     private:
         // Init functions
         void init_pickPhysicalDevice();

@@ -169,7 +169,7 @@ namespace jate::vulkan
             createInfo.subresourceRange.layerCount = 1;
 
             if (vkCreateImageView(m_device.getVkDevice(), &createInfo, nullptr, &m_swapChainImageViews[i]) != VK_SUCCESS) {
-                spdlog::error("Failed to create image view of index {0}", i);
+                spdlog::error("Failed to create image view of index {}", i);
                 return;
             }
         }
