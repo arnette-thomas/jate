@@ -38,6 +38,7 @@ namespace jate::vulkan
         void init_createImageViews();
         void init_createRenderPass();
         void init_createDepthResources();
+        void init_createFrameBuffers();
 
         VkFormat findDepthFormat() const;
         void createImageWithInfo(const VkImageCreateInfo &imageInfo, VkMemoryPropertyFlags properties, VkImage &image, VkDeviceMemory &imageMemory) const;
@@ -61,6 +62,8 @@ namespace jate::vulkan
         std::vector<VkImageView> m_depthImageViews;
 
         VkRenderPass m_renderPass;
+
+        std::vector<VkFramebuffer> m_frameBuffers;
     };
 }
 

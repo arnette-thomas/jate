@@ -23,11 +23,13 @@ namespace jate::vulkan
 
     VulkanSwapChain::~VulkanSwapChain()
     {
+        for (auto framebuffer : m_frameBuffers) {
+            vkDestroyFramebuffer(m_device.getVkDevice(), framebuffer, nullptr);
+        }
+
         for (auto imageView : m_swapChainImageViews) {
             vkDestroyImageView(m_device.getVkDevice(), imageView, nullptr);
         }
-
-        vkDestroySwapchainKHR(m_device.getVkDevice(), m_swapChain, nullptr);
 
         for (int i = 0; i < m_depthImages.size(); i++)
         {
@@ -35,6 +37,10 @@ namespace jate::vulkan
             vkDestroyImage(m_device.getVkDevice(), m_depthImages[i], nullptr);
             vkFreeMemory(m_device.getVkDevice(), m_depthImageMemorys[i], nullptr);
         }
+
+        vkDestroyRenderPass(m_device.getVkDevice(), m_renderPass, nullptr);
+
+        vkDestroySwapchainKHR(m_device.getVkDevice(), m_swapChain, nullptr);
     }
 
     void VulkanSwapChain::init_chooseSurfaceFormat()
@@ -294,6 +300,34 @@ namespace jate::vulkan
             if (vkCreateImageView(m_device.getVkDevice(), &viewInfo, nullptr, &m_depthImageViews[i]) != VK_SUCCESS)
             {
                 spdlog::error("failed to create texture image view for depth resources!");
+                return;
+            }
+        }
+    }
+
+    void VulkanSwapChain::init_createFrameBuffers()
+    {
+        m_frameBuffers.resize(getImageCount());
+
+        for (size_t i = 0; i < getImageCount(); i++)
+        {
+            uint32_t attachmentsCount = 2;
+            VkImageView attachments[] = {
+                m_swapChainImageViews[i],
+                m_depthImageViews[i]
+            };
+
+            VkFramebufferCreateInfo framebufferInfo{};
+            framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+            framebufferInfo.renderPass = m_renderPass;
+            framebufferInfo.attachmentCount = attachmentsCount;
+            framebufferInfo.pAttachments = attachments;
+            framebufferInfo.width = m_swapExtent.width;
+            framebufferInfo.height = m_swapExtent.height;
+            framebufferInfo.layers = 1;
+
+            if (vkCreateFramebuffer(m_device.getVkDevice(), &framebufferInfo, nullptr, &m_frameBuffers[i]) != VK_SUCCESS) {
+                spdlog::error("Failed to create frame buffer at index {}.", i);
                 return;
             }
         }
