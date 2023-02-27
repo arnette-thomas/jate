@@ -23,7 +23,7 @@ namespace jate::vulkan
         };
 
         inline SwapChainSupportDetails getSwapChainSupport() const { return m_swapChainSupport; }
-
+        inline size_t getImageCount() const { return m_swapChainImages.size(); }
 
         static SwapChainSupportDetails getPhysicalDeviceSwapChainSupport(VkPhysicalDevice device, VkSurfaceKHR windowSurface);
 
@@ -36,6 +36,11 @@ namespace jate::vulkan
         //   must be called after the various "choose" methods
         void init_createSwapChain();
         void init_createImageViews();
+        void init_createRenderPass();
+        void init_createDepthResources();
+
+        VkFormat findDepthFormat() const;
+        void createImageWithInfo(const VkImageCreateInfo &imageInfo, VkMemoryPropertyFlags properties, VkImage &image, VkDeviceMemory &imageMemory) const;
 
         Window& m_window;
         VulkanDevice& m_device;
@@ -49,8 +54,13 @@ namespace jate::vulkan
         VkSwapchainKHR m_swapChain;
 
         std::vector<VkImage> m_swapChainImages;
-
         std::vector<VkImageView> m_swapChainImageViews;
+
+        std::vector<VkImage> m_depthImages;
+        std::vector<VkDeviceMemory> m_depthImageMemorys;
+        std::vector<VkImageView> m_depthImageViews;
+
+        VkRenderPass m_renderPass;
     };
 }
 
