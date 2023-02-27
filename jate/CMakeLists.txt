@@ -48,6 +48,7 @@ SET(JATE_SOURCES
     src/rendering/vulkan/vulkan_swapchain.cpp
     src/rendering/vulkan/vulkan_pipeline.cpp
     src/rendering/vulkan/vulkan_vertexbuffer.cpp
+    src/rendering/vulkan/vulkan_renderer.cpp
 )
 
 add_library(${PROJECT_NAME}

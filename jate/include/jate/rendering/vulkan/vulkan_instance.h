@@ -7,7 +7,7 @@
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 
-namespace jate::vulkan
+namespace jate::rendering::vulkan
 {
     class VulkanInstance
     {

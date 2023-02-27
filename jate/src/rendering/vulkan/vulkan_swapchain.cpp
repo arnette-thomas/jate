@@ -4,7 +4,7 @@
 #include <algorithm>
 #include <limits>
 
-namespace jate::vulkan
+namespace jate::rendering::vulkan
 {
     VulkanSwapChain::VulkanSwapChain(Window& window, VulkanDevice& device)
         : m_window(window), m_device(device)

@@ -1,6 +1,6 @@
 #include <jate/rendering/vulkan/vulkan_vertexbuffer.h>
 
-namespace jate::vulkan
+namespace jate::rendering::vulkan
 {
     VulkanVertexBuffer::VulkanVertexBuffer(VulkanDevice& device, const std::vector<Vertex>& vertices)
 		: m_device(device)

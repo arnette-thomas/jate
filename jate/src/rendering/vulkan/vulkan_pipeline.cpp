@@ -4,7 +4,7 @@
 
 #include <fstream>
 
-namespace jate::vulkan
+namespace jate::rendering::vulkan
 {
     VulkanPipeline::VulkanPipeline(VulkanDevice& device, const std::string& vertFilePath, const std::string& fragFilePath, const PipelineConfigInfo& config)
 		: m_device(device)

@@ -7,7 +7,7 @@
 
 #include <jate/rendering/vulkan/vulkan_device.h>
 
-namespace jate::vulkan
+namespace jate::rendering::vulkan
 {
     class VulkanVertexBuffer
     {

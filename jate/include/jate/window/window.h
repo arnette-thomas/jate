@@ -23,7 +23,7 @@ namespace jate
         VkSurfaceKHR getVulkanSurface() const { return m_vkSurface; }
         GLFWwindow* getWindowPtr() const { return m_glfwWindow; }
 
-        void attachVulkanInstance(const vulkan::VulkanInstance& vulkanInstance) { m_vkInstance = vulkanInstance.getVkInstance(); }
+        void attachVulkanInstance(const rendering::vulkan::VulkanInstance& vulkanInstance) { m_vkInstance = vulkanInstance.getVkInstance(); }
         void createWindowSurface();
         void freeWindowSurface();
 

@@ -8,7 +8,7 @@
 
 #include <cassert>
 
-namespace jate::vulkan
+namespace jate::rendering::vulkan
 {
     VulkanDevice::VulkanDevice(const VulkanInstance& instance, Window& window) : m_instance(instance), m_window(window)
     {

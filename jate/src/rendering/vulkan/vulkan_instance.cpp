@@ -2,7 +2,7 @@
 
 #include <spdlog/spdlog.h>
 
-namespace jate::vulkan
+namespace jate::rendering::vulkan
 {
     VulkanInstance::VulkanInstance(const std::string& appName)
     {

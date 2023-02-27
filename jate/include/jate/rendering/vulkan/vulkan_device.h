@@ -7,7 +7,7 @@
 #include <optional>
 #include <memory>
 
-namespace jate::vulkan
+namespace jate::rendering::vulkan
 {
     class VulkanDevice
     {

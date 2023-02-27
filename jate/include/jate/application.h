@@ -2,10 +2,7 @@
 #define Jate_Application_H
 
 #include <jate/window/window.h>
-#include <jate/rendering/vulkan/vulkan_instance.h>
-#include <jate/rendering/vulkan/vulkan_device.h>
-#include <jate/rendering/vulkan/vulkan_swapchain.h>
-#include <jate/rendering/vulkan/vulkan_pipeline.h>
+#include <jate/rendering/renderer.h>
 
 #include <memory>
 
@@ -20,17 +17,10 @@ namespace jate
         void run();
     
     private:
-        void init_createPipelineLayout();
-        void init_createPipeline();
-
         bool m_running = false;
         Window m_window;
-        vulkan::VulkanInstance m_vulkanInstance;
-        vulkan::VulkanDevice m_vulkanDevice;
-        vulkan::VulkanSwapChain m_vulkanSwapChain;
-
-        std::unique_ptr<vulkan::VulkanPipeline> m_vulkanPipeline;
-        VkPipelineLayout m_pipelineLayout;
+        
+        std::unique_ptr<rendering::ARenderer> m_renderer;
     };
 }
 
