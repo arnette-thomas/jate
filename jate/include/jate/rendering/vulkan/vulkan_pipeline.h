@@ -1,7 +1,7 @@
 #ifndef Jate_VulkanPipeline_H
 #define Jate_VulkanPipeline_H
 
-#include <jate/vulkan/vulkan_device.h>
+#include <jate/rendering/vulkan/vulkan_device.h>
 
 namespace jate::vulkan
 {

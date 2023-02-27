@@ -1,4 +1,4 @@
-#include <jate/vulkan/vulkan_vertexbuffer.h>
+#include <jate/rendering/vulkan/vulkan_vertexbuffer.h>
 
 namespace jate::vulkan
 {

@@ -1,4 +1,4 @@
-#include <jate/vulkan/vulkan_instance.h>
+#include <jate/rendering/vulkan/vulkan_instance.h>
 
 #include <spdlog/spdlog.h>
 

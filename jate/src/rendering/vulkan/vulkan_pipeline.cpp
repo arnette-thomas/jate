@@ -1,6 +1,6 @@
-#include <jate/vulkan/vulkan_pipeline.h>
+#include <jate/rendering/vulkan/vulkan_pipeline.h>
 
-#include <jate/vulkan/vulkan_vertexbuffer.h>
+#include <jate/rendering/vulkan/vulkan_vertexbuffer.h>
 
 #include <fstream>
 

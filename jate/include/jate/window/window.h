@@ -4,7 +4,7 @@
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 
-#include <jate/vulkan/vulkan_instance.h>
+#include <jate/rendering/vulkan/vulkan_instance.h>
 
 #include <string>
 

@@ -1,6 +1,6 @@
-#include <jate/vulkan/vulkan_device.h>
+#include <jate/rendering/vulkan/vulkan_device.h>
 
-#include <jate/vulkan/vulkan_swapchain.h>
+#include <jate/rendering/vulkan/vulkan_swapchain.h>
 
 #include <spdlog/spdlog.h>
 #include <algorithm>

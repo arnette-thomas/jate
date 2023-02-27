@@ -5,7 +5,7 @@
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
 #include <glm/glm.hpp>
 
-#include <jate/vulkan/vulkan_device.h>
+#include <jate/rendering/vulkan/vulkan_device.h>
 
 namespace jate::vulkan
 {

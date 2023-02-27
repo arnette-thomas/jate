@@ -2,7 +2,7 @@
 #define Jate_VulkanSwapchain_H
 
 #include <jate/window/window.h>
-#include <jate/vulkan/vulkan_device.h>
+#include <jate/rendering/vulkan/vulkan_device.h>
 
 namespace jate::vulkan
 {

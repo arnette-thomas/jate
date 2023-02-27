@@ -1,7 +1,7 @@
 #ifndef Jate_VulkanDevice_H
 #define Jate_VulkanDevice_H
 
-#include <jate/vulkan/vulkan_instance.h>
+#include <jate/rendering/vulkan/vulkan_instance.h>
 #include <jate/window/window.h>
 
 #include <optional>
