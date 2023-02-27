@@ -7,6 +7,7 @@ namespace jate::vulkan
 {
     class VulkanPipeline
     {
+    public:
         struct PipelineConfigInfo
         {
             VkPipelineViewportStateCreateInfo viewportInfo;
@@ -30,7 +31,7 @@ namespace jate::vulkan
 
             static void defaultConfig(PipelineConfigInfo& conf);
         };
-    public:
+        
         VulkanPipeline(VulkanDevice& device, const std::string& vertFilePath, const std::string& fragFilePath, const PipelineConfigInfo& config);
 		~VulkanPipeline();
 

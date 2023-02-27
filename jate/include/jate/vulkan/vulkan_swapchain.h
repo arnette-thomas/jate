@@ -24,6 +24,7 @@ namespace jate::vulkan
 
         inline SwapChainSupportDetails getSwapChainSupport() const { return m_swapChainSupport; }
         inline size_t getImageCount() const { return m_swapChainImages.size(); }
+        inline VkRenderPass getRenderPass() const { return m_renderPass; }
 
         static SwapChainSupportDetails getPhysicalDeviceSwapChainSupport(VkPhysicalDevice device, VkSurfaceKHR windowSurface);
 
