@@ -30,6 +30,8 @@ namespace jate::rendering::vulkan
         inline VkDevice getVkDevice() const { return m_device; }
         inline VkPhysicalDevice getPhysicalDevice() const { return m_physicalDevice; }
         inline QueueFamilyIndices getQueueFamilyIndices() const { return m_queueFamilyIndices; }
+        inline VkQueue getGraphicsQueue() const { return m_graphicsQueue; }
+        inline VkQueue getPresentQueue() const { return m_presentQueue; }
 
         // Buffer helper function
         void createBuffer(

@@ -19,11 +19,6 @@ namespace jate::rendering::vulkan
 		vkDestroyPipeline(m_device.getVkDevice(), m_graphicsPipeline, nullptr);
 	}
 
-	void VulkanPipeline::cmdBind(VkCommandBuffer commandBuffer)
-	{
-		vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_graphicsPipeline);
-	}
-
 	std::vector<char> VulkanPipeline::readFile(const std::string& path)
 	{
 		std::ifstream file(path, std::ios::ate | std::ios::binary);

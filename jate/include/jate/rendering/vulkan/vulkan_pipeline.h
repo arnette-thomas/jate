@@ -33,13 +33,13 @@ namespace jate::rendering::vulkan
         };
         
         VulkanPipeline(VulkanDevice& device, const std::string& vertFilePath, const std::string& fragFilePath, const PipelineConfigInfo& config);
-		~VulkanPipeline();
+        ~VulkanPipeline();
 
-		// No copy allowed
-		VulkanPipeline(const VulkanPipeline&) = delete;
-		VulkanPipeline& operator=(const VulkanPipeline&) = delete;
+        // No copy allowed
+        VulkanPipeline(const VulkanPipeline&) = delete;
+        VulkanPipeline& operator=(const VulkanPipeline&) = delete;
 
-		void cmdBind(VkCommandBuffer commandBuffer);
+        inline VkPipeline getVkPipeline() const { return m_graphicsPipeline; }
 
     private:
 		static std::vector<char> readFile(const std::string& path);

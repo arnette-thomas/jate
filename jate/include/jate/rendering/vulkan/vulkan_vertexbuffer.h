@@ -22,20 +22,23 @@ namespace jate::rendering::vulkan
 			static std::vector<VkVertexInputAttributeDescription> getAttributeDescriptions();
 		};
 
-		VulkanVertexBuffer(VulkanDevice& device, const std::vector<Vertex>& vertices);
+		VulkanVertexBuffer(VulkanDevice& device, const std::vector<Vertex>& vertices, VkDeviceSize bufferOffset = 0);
 		~VulkanVertexBuffer();
 
 		// No copy allowed
 		VulkanVertexBuffer(const VulkanVertexBuffer&) = delete;
 		VulkanVertexBuffer& operator=(const VulkanVertexBuffer&) = delete;
 
-		void cmdBind(VkCommandBuffer commandBuffer);
-		void cmdDraw(VkCommandBuffer commandBuffer);
+		inline VkBuffer getVkBuffer() const { return m_vertexBuffer; }
+		inline VkDeviceSize getBufferOffset() const { return m_bufferOffset; }
+		inline uint32_t getVertexCount() const { return m_vertexCount; }
+
 	private:
-		void createVertexBuffers(const std::vector<Vertex>& vertices);
+		void init_createVertexBuffers(const std::vector<Vertex>& vertices);
 
 		VulkanDevice& m_device;
 
+		VkDeviceSize m_bufferOffset;
 		VkBuffer m_vertexBuffer;
 		VkDeviceMemory m_vertexBufferMemory;
 		uint32_t m_vertexCount;

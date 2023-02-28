@@ -17,8 +17,11 @@ namespace jate::rendering::vulkan
         init_chooseSwapExtent();
 
         init_createSwapChain();
-        init_createRenderPass();
+        init_createImageViews();
         init_createDepthResources();
+        init_createRenderPass();
+
+        init_createFrameBuffers();
     }
 
     VulkanSwapChain::~VulkanSwapChain()
@@ -366,6 +369,13 @@ namespace jate::rendering::vulkan
         {
             throw std::runtime_error("failed to bind image memory!");
         }
+    }
+
+    uint32_t VulkanSwapChain::acquireNextImage(VkSemaphore signalSemaphore)
+    {
+        uint32_t imageIndex;
+        vkAcquireNextImageKHR(m_device.getVkDevice(), m_swapChain, UINT64_MAX, signalSemaphore, VK_NULL_HANDLE, &imageIndex);
+        return imageIndex;
     }
 
     // STATIC METHOD

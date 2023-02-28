@@ -12,7 +12,7 @@ namespace jate
     {
     public:
         Application();
-        ~Application(){};
+        ~Application();
 
         void run();
     

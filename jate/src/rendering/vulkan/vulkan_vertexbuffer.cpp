@@ -2,10 +2,10 @@
 
 namespace jate::rendering::vulkan
 {
-    VulkanVertexBuffer::VulkanVertexBuffer(VulkanDevice& device, const std::vector<Vertex>& vertices)
-		: m_device(device)
+    VulkanVertexBuffer::VulkanVertexBuffer(VulkanDevice& device, const std::vector<Vertex>& vertices, VkDeviceSize bufferOffset)
+		: m_device(device), m_bufferOffset(bufferOffset)
 	{
-		createVertexBuffers(vertices);
+		init_createVertexBuffers(vertices);
 	}
 
 	VulkanVertexBuffer::~VulkanVertexBuffer()
@@ -14,19 +14,7 @@ namespace jate::rendering::vulkan
 		vkFreeMemory(m_device.getVkDevice(), m_vertexBufferMemory, nullptr);
 	}
 
-	void VulkanVertexBuffer::cmdBind(VkCommandBuffer commandBuffer)
-	{
-		VkBuffer buffers[] = { m_vertexBuffer };
-		VkDeviceSize bufferOffsets[] = { 0 };
-		vkCmdBindVertexBuffers(commandBuffer, 0, 1, buffers, bufferOffsets);
-	}
-
-	void VulkanVertexBuffer::cmdDraw(VkCommandBuffer commandBuffer)
-	{
-		vkCmdDraw(commandBuffer, m_vertexCount, 1, 0, 0);
-	}
-
-	void VulkanVertexBuffer::createVertexBuffers(const std::vector<Vertex>& vertices)
+	void VulkanVertexBuffer::init_createVertexBuffers(const std::vector<Vertex>& vertices)
 	{
 		m_vertexCount = static_cast<uint32_t>(vertices.size());
 		assert(m_vertexCount >= 3 && "VertexCount must be at least 3");
@@ -42,7 +30,7 @@ namespace jate::rendering::vulkan
 
 		// Mapping vertex device memory to host memory in order to write into it
 		void* hostData;
-		vkMapMemory(m_device.getVkDevice(), m_vertexBufferMemory, 0, bufferSize, 0, &hostData);
+		vkMapMemory(m_device.getVkDevice(), m_vertexBufferMemory, m_bufferOffset, bufferSize, 0, &hostData);
 
 		// Copy data from the vertices vector to the host data, which is mapped to device memory.
 		// Thanks to the VK_MEMORY_PROPERTY_HOST_COHERENT_BIT flag, this will automatically be flushed to device memory

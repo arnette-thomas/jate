@@ -15,6 +15,9 @@ namespace jate::rendering
         ARenderer(const ARenderer&) = delete;
         ARenderer& operator=(const ARenderer&) = delete;
 
+        virtual void beginFrame() = 0;
+        virtual void endFrame() = 0;
+
     protected:
         Window& m_window;
     };
