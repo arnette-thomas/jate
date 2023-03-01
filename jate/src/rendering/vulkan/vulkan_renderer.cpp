@@ -57,7 +57,7 @@ namespace jate::rendering::vulkan
         pipelineConfig.renderPass = m_vulkanSwapChain.getRenderPass();
         pipelineConfig.pipelineLayout = m_pipelineLayout;
 
-        m_vulkanPipeline = std::make_unique<vulkan::VulkanPipeline>(m_vulkanDevice, "shaders/simple.vert.spv", "shaders/simple.frag.spv", pipelineConfig);
+        m_vulkanPipeline = std::make_unique<vulkan::VulkanPipeline>(m_vulkanDevice, "jate_resources/shaders/simple.vert.spv", "jate_resources/shaders/simple.frag.spv", pipelineConfig);
     }
 
     void VulkanRenderer::init_createSyncObjects()

@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.15)
 
 project(
-    Jate
+    JateRepo
     VERSION 0.1
     DESCRIPTION "A very tiny engine"
 )

@@ -27,9 +27,11 @@ endif()
 
 add_definitions(-DVK_USE_PLATFORM_WIN32_KHR)
 
-# Handle shaders compilation
+set(JATE_RESOURCES_OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/jate_resources)
+
+### Handle shaders compilation
 set(SHADER_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/shaders)
-set(SHADER_BINARY_DIR ${CMAKE_CURRENT_BINARY_DIR}/shaders)
+set(SHADER_BINARY_DIR ${JATE_RESOURCES_OUTPUT}/shaders)
 file(GLOB SHADERS
   ${SHADER_SOURCE_DIR}/*.vert
   ${SHADER_SOURCE_DIR}/*.frag
@@ -65,7 +67,7 @@ foreach(source IN LISTS SHADERS)
   list(APPEND SPV_SHADERS ${SHADER_BINARY_DIR}/${FILENAME}.spv)
 endforeach()
 
-add_custom_target(shaders ALL DEPENDS ${SPV_SHADERS})
+add_custom_target(jate_resources ALL DEPENDS ${SPV_SHADERS})
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 
