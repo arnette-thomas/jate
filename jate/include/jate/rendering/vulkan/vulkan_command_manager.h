@@ -11,12 +11,14 @@ namespace jate::rendering::vulkan
     class VulkanCommandManager
     {
     public:
-        VulkanCommandManager(VulkanDevice& device, VulkanSwapChain& swapChain);
+        VulkanCommandManager(VulkanDevice& device, VulkanSwapChain& swapChain, uint8_t commandBuffersCount = 1);
         ~VulkanCommandManager();
 
         // No copy
         VulkanCommandManager(const VulkanCommandManager&) = delete;
         VulkanCommandManager& operator=(const VulkanCommandManager&) = delete;
+
+        void changeCommandBufferIndex(size_t index);
 
         void startRecording();
         void endRecording();
@@ -36,13 +38,16 @@ namespace jate::rendering::vulkan
     private:
         // init functions
         void init_createCommandPool();
-        void init_createCommandBuffer();
+        void init_createCommandBuffers(uint8_t amount);
+
+        inline VkCommandBuffer getCurrentCommandBuffer() const { return m_commandBuffers[m_currentCommandBufferIndex]; }
 
         VulkanDevice& m_device;
         VulkanSwapChain& m_swapChain;
 
         VkCommandPool m_commandPool;
-        VkCommandBuffer m_commandBuffer;
+        std::vector<VkCommandBuffer> m_commandBuffers;
+        size_t m_currentCommandBufferIndex;
     };
 }
 

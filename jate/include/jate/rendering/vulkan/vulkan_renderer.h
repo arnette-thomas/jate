@@ -36,11 +36,14 @@ namespace jate::rendering::vulkan
         VkPipelineLayout m_pipelineLayout;
 
         // Sync objects
-        VkSemaphore m_imageAvailableSemaphore;
-        VkSemaphore m_renderFinishedSemaphore;
-        VkFence m_inFlightFence;
+        std::vector<VkSemaphore> m_imageAvailableSemaphores;
+        std::vector<VkSemaphore> m_renderFinishedSemaphores;
+        std::vector<VkFence> m_inFlightFences;
 
         uint32_t m_currentImageIndex;
+
+        const uint8_t MAX_FRAMES_IN_FLIGHT = 2;
+        uint8_t m_currentFrameInFlight = 0;
 
         // TEMPORARY
         std::unique_ptr<VulkanVertexBuffer> m_testingVertexBuffer;

@@ -4,12 +4,12 @@
 
 namespace jate::rendering::vulkan
 {
-    VulkanCommandManager::VulkanCommandManager(VulkanDevice& device, VulkanSwapChain& swapChain) :
+    VulkanCommandManager::VulkanCommandManager(VulkanDevice& device, VulkanSwapChain& swapChain, uint8_t commandBuffersCount) :
         m_device(device),
         m_swapChain(swapChain)
     {
         init_createCommandPool();
-        init_createCommandBuffer();
+        init_createCommandBuffers(commandBuffersCount);
     }
 
     VulkanCommandManager::~VulkanCommandManager()
@@ -36,30 +36,42 @@ namespace jate::rendering::vulkan
         }
     }
 
-    void VulkanCommandManager::init_createCommandBuffer()
+    void VulkanCommandManager::init_createCommandBuffers(uint8_t amount)
     {
+        m_commandBuffers.resize(amount);
+
         VkCommandBufferAllocateInfo allocInfo{};
         allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
         allocInfo.commandPool = m_commandPool;
         allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;      // Primary = can be sumbitted ; Secondary = can be called by another command buffer
-        allocInfo.commandBufferCount = 1;
+        allocInfo.commandBufferCount = static_cast<uint32_t>(m_commandBuffers.size());
 
-        if (vkAllocateCommandBuffers(m_device.getVkDevice(), &allocInfo, &m_commandBuffer) != VK_SUCCESS) {
+        if (vkAllocateCommandBuffers(m_device.getVkDevice(), &allocInfo, m_commandBuffers.data()) != VK_SUCCESS) {
             spdlog::error("Failed to allocate command buffers!");
             return;
         }
     }
 
+    void VulkanCommandManager::changeCommandBufferIndex(size_t index)
+    {
+        if (index >= m_commandBuffers.size())
+        {
+            spdlog::error("bad index at changeCommandBufferIndex : index = {}, but command manager only has {} buffers", index, m_commandBuffers.size());
+            return;
+        }
+        m_currentCommandBufferIndex = index;
+    }
+
     void VulkanCommandManager::startRecording()
     {
-        vkResetCommandBuffer(m_commandBuffer, 0);
+        vkResetCommandBuffer(getCurrentCommandBuffer(), 0);
 
         VkCommandBufferBeginInfo beginInfo{};
         beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
         beginInfo.flags = 0; // Optional
         beginInfo.pInheritanceInfo = nullptr; // Optional
 
-        if (vkBeginCommandBuffer(m_commandBuffer, &beginInfo) != VK_SUCCESS) {
+        if (vkBeginCommandBuffer(getCurrentCommandBuffer(), &beginInfo) != VK_SUCCESS) {
             spdlog::error("failed to begin recording command buffer!");
             return;
         }
@@ -67,7 +79,7 @@ namespace jate::rendering::vulkan
 
     void VulkanCommandManager::endRecording()
     {
-        if (vkEndCommandBuffer(m_commandBuffer) != VK_SUCCESS) {
+        if (vkEndCommandBuffer(getCurrentCommandBuffer()) != VK_SUCCESS) {
             spdlog::error("failed to record command buffer!");
             return;
         }
@@ -91,17 +103,17 @@ namespace jate::rendering::vulkan
         renderPassInfo.clearValueCount = clearValues.size();
         renderPassInfo.pClearValues = clearValues.data();
 
-        vkCmdBeginRenderPass(m_commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
+        vkCmdBeginRenderPass(getCurrentCommandBuffer(), &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
     }
 
     void VulkanCommandManager::cmdEndRenderPass()
     {
-        vkCmdEndRenderPass(m_commandBuffer);
+        vkCmdEndRenderPass(getCurrentCommandBuffer());
     }
 
     void VulkanCommandManager::cmdBindPipeline(const VulkanPipeline& pipeline)
     {
-        vkCmdBindPipeline(m_commandBuffer, VkPipelineBindPoint::VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.getVkPipeline());
+        vkCmdBindPipeline(getCurrentCommandBuffer(), VkPipelineBindPoint::VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.getVkPipeline());
     }
 
     void VulkanCommandManager::cmdSetViewport(float x, float y, float width, float height, float minDepth, float maxDepth)
@@ -111,7 +123,7 @@ namespace jate::rendering::vulkan
         viewport.width = width; viewport.height = height;
         viewport.minDepth = minDepth; viewport.maxDepth = maxDepth;
 
-        vkCmdSetViewport(m_commandBuffer, 0, 1, &viewport);
+        vkCmdSetViewport(getCurrentCommandBuffer(), 0, 1, &viewport);
     }
 
     void VulkanCommandManager::cmdSetScissor(VkOffset2D offset, VkExtent2D extent)
@@ -120,7 +132,7 @@ namespace jate::rendering::vulkan
         scissor.offset = offset;
         scissor.extent = extent;
 
-        vkCmdSetScissor(m_commandBuffer, 0, 1, &scissor);
+        vkCmdSetScissor(getCurrentCommandBuffer(), 0, 1, &scissor);
     }
 
     void VulkanCommandManager::cmdDrawVertexBuffer(const VulkanVertexBuffer& vertexBuffer)
@@ -128,9 +140,9 @@ namespace jate::rendering::vulkan
 
         VkBuffer buffers[] = { vertexBuffer.getVkBuffer() };
 		VkDeviceSize bufferOffsets[] = { vertexBuffer.getBufferOffset() };
-		vkCmdBindVertexBuffers(m_commandBuffer, 0, 1, buffers, bufferOffsets);
+		vkCmdBindVertexBuffers(getCurrentCommandBuffer(), 0, 1, buffers, bufferOffsets);
 
-        vkCmdDraw(m_commandBuffer, vertexBuffer.getVertexCount(), 1, 0, 0);
+        vkCmdDraw(getCurrentCommandBuffer(), vertexBuffer.getVertexCount(), 1, 0, 0);
     }
 
     void VulkanCommandManager::submit(VkSemaphore waitSemaphore, VkSemaphore signalSemaphore, VkFence fence)
@@ -145,7 +157,7 @@ namespace jate::rendering::vulkan
         submitInfo.pWaitDstStageMask = waitStages;
 
         submitInfo.commandBufferCount = 1;
-        submitInfo.pCommandBuffers = &m_commandBuffer;
+        submitInfo.pCommandBuffers = &m_commandBuffers[m_currentCommandBufferIndex];
 
         VkSemaphore signalSemaphores[] = {signalSemaphore};
         submitInfo.signalSemaphoreCount = 1;
