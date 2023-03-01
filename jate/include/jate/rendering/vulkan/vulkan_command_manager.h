@@ -33,7 +33,7 @@ namespace jate::rendering::vulkan
         void cmdDrawVertexBuffer(const VulkanVertexBuffer& vertexBuffer);
 
         void submit(VkSemaphore waitSemaphore, VkSemaphore signalSemaphore, VkFence fence);
-        void present(uint32_t frameBufferIndex, VkSemaphore waitSemaphore);
+        void present(uint32_t* frameBufferIndex, VkSemaphore waitSemaphore);
 
     private:
         // init functions

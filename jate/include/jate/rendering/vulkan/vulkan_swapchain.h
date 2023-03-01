@@ -5,13 +5,14 @@
 #include <jate/rendering/vulkan/vulkan_device.h>
 
 #include <spdlog/spdlog.h>
+#include <memory>
 
 namespace jate::rendering::vulkan
 {
     class VulkanSwapChain
     {
     public:
-        VulkanSwapChain(Window& window, VulkanDevice& device);
+        VulkanSwapChain(Window& window, VulkanDevice& device, std::unique_ptr<VulkanSwapChain> previousSwapChain = nullptr);
         ~VulkanSwapChain();
 
         // Disable copy
@@ -81,6 +82,8 @@ namespace jate::rendering::vulkan
         VkRenderPass m_renderPass;
 
         std::vector<VkFramebuffer> m_frameBuffers;
+
+        std::unique_ptr<VulkanSwapChain> m_oldSwapChain;    // Only available at initialisation
     };
 }
 

@@ -169,7 +169,7 @@ namespace jate::rendering::vulkan
         }
     }
 
-    void VulkanCommandManager::present(uint32_t frameBufferIndex, VkSemaphore waitSemaphore)
+    void VulkanCommandManager::present(uint32_t* frameBufferIndex, VkSemaphore waitSemaphore)
     {
         VkSemaphore waitSemaphores[] = {waitSemaphore};
 
@@ -182,7 +182,7 @@ namespace jate::rendering::vulkan
         VkSwapchainKHR swapChains[] = {m_swapChain.getVkSwapchain()};
         presentInfo.swapchainCount = 1;
         presentInfo.pSwapchains = swapChains;
-        presentInfo.pImageIndices = &frameBufferIndex;
+        presentInfo.pImageIndices = frameBufferIndex;
 
         presentInfo.pResults = nullptr; // Optional
 

@@ -20,12 +20,11 @@ namespace jate
         m_running = true;
 
         // Main loop
-        // DEBUG - for now we are only drawing one frame, so to preserve CPU we don't enable the main loop until systems are implemented
-        m_renderer->beginFrame();
-        m_renderer->endFrame();
         while (!m_window.shouldClose())
         {
-            glfwWaitEvents();
+            glfwPollEvents();
+            m_renderer->beginFrame();
+            m_renderer->endFrame();
         }
     }
 }

@@ -1,4 +1,5 @@
 #include <jate/rendering/vulkan/vulkan_swapchain.h>
+#include <jate/rendering/vulkan/exceptions.h>
 
 #include <spdlog/spdlog.h>
 #include <algorithm>
@@ -6,9 +7,14 @@
 
 namespace jate::rendering::vulkan
 {
-    VulkanSwapChain::VulkanSwapChain(Window& window, VulkanDevice& device)
+    VulkanSwapChain::VulkanSwapChain(Window& window, VulkanDevice& device, std::unique_ptr<VulkanSwapChain> previousSwapChain)
         : m_window(window), m_device(device)
     {
+        if (previousSwapChain != nullptr)
+        {
+            m_oldSwapChain = std::move(previousSwapChain);
+        }
+
         // This is called first to ensure swap chain support is available during the initialization process
         m_swapChainSupport = getPhysicalDeviceSwapChainSupport(m_device.getPhysicalDevice(), m_window.getVulkanSurface());
 
@@ -22,6 +28,8 @@ namespace jate::rendering::vulkan
         init_createRenderPass();
 
         init_createFrameBuffers();
+
+        m_oldSwapChain = nullptr;   // Release old swap chain, since it is only useful at initialization
     }
 
     VulkanSwapChain::~VulkanSwapChain()
@@ -146,7 +154,7 @@ namespace jate::rendering::vulkan
         createInfo.presentMode = m_presentMode;
         createInfo.clipped = VK_TRUE;   // The values of pixels hidden by another window are ignored.
 
-        createInfo.oldSwapchain = VK_NULL_HANDLE;   // TEMPORARY. Allows swap chain to keep in memory the previous swap chain, useful when it is rebuilt (e.g. window resize)
+        createInfo.oldSwapchain = m_oldSwapChain != nullptr ? m_oldSwapChain->getVkSwapchain() : VK_NULL_HANDLE;   // Allows swap chain to keep in memory the previous swap chain, useful when it is rebuilt (e.g. window resize)
 
         if (vkCreateSwapchainKHR(m_device.getVkDevice(), &createInfo, nullptr, &m_swapChain) != VK_SUCCESS) {
             spdlog::error("Failed to create swap chain");
@@ -374,7 +382,13 @@ namespace jate::rendering::vulkan
     uint32_t VulkanSwapChain::acquireNextImage(VkSemaphore signalSemaphore)
     {
         uint32_t imageIndex;
-        vkAcquireNextImageKHR(m_device.getVkDevice(), m_swapChain, UINT64_MAX, signalSemaphore, VK_NULL_HANDLE, &imageIndex);
+        VkResult result = vkAcquireNextImageKHR(m_device.getVkDevice(), m_swapChain, UINT64_MAX, signalSemaphore, VK_NULL_HANDLE, &imageIndex);
+
+        if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || m_window.hasBeenResized())
+            throw SwapChainOutOfDateException("Swap chain out of date");
+        else if (result != VK_SUCCESS)
+            throw std::runtime_error("Could not acquire swap chain image.");
+
         return imageIndex;
     }
 

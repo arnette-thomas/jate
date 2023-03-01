@@ -27,6 +27,9 @@ namespace jate
         void createWindowSurface();
         void freeWindowSurface();
 
+        inline void resetFrameBufferResizedFlag() { m_frameBufferResized = false; }
+        inline bool hasBeenResized() const { return m_frameBufferResized; }
+
     private:
         uint16_t m_width, m_height;
         std::string m_name;

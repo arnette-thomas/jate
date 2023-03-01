@@ -1,4 +1,5 @@
 #include <jate/rendering/vulkan/vulkan_renderer.h>
+#include <jate/rendering/vulkan/exceptions.h>
 
 #include <spdlog/spdlog.h>
 
@@ -7,10 +8,10 @@ namespace jate::rendering::vulkan
     VulkanRenderer::VulkanRenderer(Window& window) :
         ARenderer(window),
         m_vulkanInstance("My app"),
-        m_vulkanDevice(m_vulkanInstance, m_window),
-        m_vulkanSwapChain(m_window, m_vulkanDevice),
-        m_vulkanCommandManager(m_vulkanDevice, m_vulkanSwapChain, MAX_FRAMES_IN_FLIGHT)
+        m_vulkanDevice(m_vulkanInstance, m_window)
     {
+        init_createSwapChain();
+        init_createCommandManager();
         init_createPipelineLayout();
         init_createPipeline();
         init_createSyncObjects();
@@ -43,6 +44,16 @@ namespace jate::rendering::vulkan
         vkDestroyPipelineLayout(m_vulkanDevice.getVkDevice(), m_pipelineLayout, nullptr);
     }
 
+    void VulkanRenderer::init_createSwapChain()
+    {
+        m_vulkanSwapChain = std::make_unique<VulkanSwapChain>(m_window, m_vulkanDevice, std::move(m_vulkanSwapChain));
+    }
+
+    void VulkanRenderer::init_createCommandManager()
+    {
+        m_vulkanCommandManager = std::make_unique<VulkanCommandManager>(m_vulkanDevice, *m_vulkanSwapChain, MAX_FRAMES_IN_FLIGHT);
+    }
+
     void VulkanRenderer::init_createPipelineLayout()
     {
         VkPipelineLayoutCreateInfo layoutInfo{};
@@ -63,7 +74,7 @@ namespace jate::rendering::vulkan
     {
         VulkanPipeline::PipelineConfigInfo pipelineConfig {};
         VulkanPipeline::PipelineConfigInfo::defaultConfig(pipelineConfig);
-        pipelineConfig.renderPass = m_vulkanSwapChain.getRenderPass();
+        pipelineConfig.renderPass = m_vulkanSwapChain->getRenderPass();
         pipelineConfig.pipelineLayout = m_pipelineLayout;
 
         m_vulkanPipeline = std::make_unique<vulkan::VulkanPipeline>(m_vulkanDevice, "jate_resources/shaders/simple.vert.spv", "jate_resources/shaders/simple.frag.spv", pipelineConfig);
@@ -93,33 +104,61 @@ namespace jate::rendering::vulkan
         }
     }
 
+    void VulkanRenderer::recreateSwapChain()
+    {
+        // If one dimension is zero, pause the current thread until both dimensions are positive
+        int width = 0, height = 0;
+        glfwGetFramebufferSize(m_window.getWindowPtr(), &width, &height);
+        while (width == 0 || height == 0) {
+            glfwGetFramebufferSize(m_window.getWindowPtr(), &width, &height);
+            glfwWaitEvents();
+        }
+
+		// Pause current thread until device is not busy
+		vkDeviceWaitIdle(m_vulkanDevice.getVkDevice());
+
+        // Recreate swap chain, and everything that needs the swap chain
+        init_createSwapChain();
+        init_createCommandManager();
+        init_createPipeline();
+    }
+
     void VulkanRenderer::beginFrame()
     {
         vkWaitForFences(m_vulkanDevice.getVkDevice(), 1, &m_inFlightFences[m_currentFrameInFlight], VK_TRUE, UINT64_MAX);
         vkResetFences(m_vulkanDevice.getVkDevice(), 1, &m_inFlightFences[m_currentFrameInFlight]);
 
-        m_currentImageIndex = m_vulkanSwapChain.acquireNextImage(m_imageAvailableSemaphores[m_currentFrameInFlight]);
+        try
+        {
+            m_currentImageIndex = m_vulkanSwapChain->acquireNextImage(m_imageAvailableSemaphores[m_currentFrameInFlight]);
+        }
+        catch(const SwapChainOutOfDateException e)
+        {
+            recreateSwapChain();
+            m_window.resetFrameBufferResizedFlag();
+            m_currentImageIndex = m_vulkanSwapChain->acquireNextImage(m_imageAvailableSemaphores[m_currentFrameInFlight]);
+        }
 
-        m_vulkanCommandManager.changeCommandBufferIndex(static_cast<size_t>(m_currentFrameInFlight));
+        m_vulkanCommandManager->changeCommandBufferIndex(static_cast<size_t>(m_currentFrameInFlight));
 
-        m_vulkanCommandManager.startRecording();
-        m_vulkanCommandManager.cmdStartRenderPass(m_vulkanSwapChain.getRenderPass(), 0); // TODO
-        m_vulkanCommandManager.cmdBindPipeline(*m_vulkanPipeline);
+        m_vulkanCommandManager->startRecording();
+        m_vulkanCommandManager->cmdStartRenderPass(m_vulkanSwapChain->getRenderPass(), m_currentImageIndex);
+        m_vulkanCommandManager->cmdBindPipeline(*m_vulkanPipeline);
 
-        auto swapChainExtent = m_vulkanSwapChain.getExtent();
-        m_vulkanCommandManager.cmdSetViewport(0.0f, 0.0f, static_cast<float>(swapChainExtent.width), static_cast<float>(swapChainExtent.height));
-        m_vulkanCommandManager.cmdSetScissor({0, 0}, swapChainExtent);
+        auto swapChainExtent = m_vulkanSwapChain->getExtent();
+        m_vulkanCommandManager->cmdSetViewport(0.0f, 0.0f, static_cast<float>(swapChainExtent.width), static_cast<float>(swapChainExtent.height));
+        m_vulkanCommandManager->cmdSetScissor({0, 0}, swapChainExtent);
 
-        m_vulkanCommandManager.cmdDrawVertexBuffer(*m_testingVertexBuffer);
+        m_vulkanCommandManager->cmdDrawVertexBuffer(*m_testingVertexBuffer);
     }
 
     void VulkanRenderer::endFrame()
     {
-        m_vulkanCommandManager.cmdEndRenderPass();
-        m_vulkanCommandManager.endRecording();
+        m_vulkanCommandManager->cmdEndRenderPass();
+        m_vulkanCommandManager->endRecording();
 
-        m_vulkanCommandManager.submit(m_imageAvailableSemaphores[m_currentFrameInFlight], m_renderFinishedSemaphores[m_currentFrameInFlight], m_inFlightFences[m_currentFrameInFlight]);
-        m_vulkanCommandManager.present(m_currentImageIndex, m_renderFinishedSemaphores[m_currentFrameInFlight]);
+        m_vulkanCommandManager->submit(m_imageAvailableSemaphores[m_currentFrameInFlight], m_renderFinishedSemaphores[m_currentFrameInFlight], m_inFlightFences[m_currentFrameInFlight]);
+        m_vulkanCommandManager->present(&m_currentImageIndex, m_renderFinishedSemaphores[m_currentFrameInFlight]);
 
         m_currentFrameInFlight = (m_currentFrameInFlight + 1) % MAX_FRAMES_IN_FLIGHT;
     }

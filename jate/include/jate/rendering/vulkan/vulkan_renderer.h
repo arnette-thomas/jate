@@ -20,17 +20,21 @@ namespace jate::rendering::vulkan
         ~VulkanRenderer();
 
     private:
+        void init_createSwapChain();
+        void init_createCommandManager();
         void init_createPipelineLayout();
         void init_createPipeline();
         void init_createSyncObjects();
+
+        void recreateSwapChain();
 
         virtual void beginFrame() override;
         virtual void endFrame() override;
 
         VulkanInstance m_vulkanInstance;
         VulkanDevice m_vulkanDevice;
-        VulkanSwapChain m_vulkanSwapChain;
-        VulkanCommandManager m_vulkanCommandManager;
+        std::unique_ptr<VulkanSwapChain> m_vulkanSwapChain;
+        std::unique_ptr<VulkanCommandManager> m_vulkanCommandManager;
 
         std::unique_ptr<VulkanPipeline> m_vulkanPipeline;
         VkPipelineLayout m_pipelineLayout;
