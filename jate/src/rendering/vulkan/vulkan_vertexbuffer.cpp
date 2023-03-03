@@ -5,7 +5,7 @@ namespace jate::rendering::vulkan
     VulkanVertexBuffer::VulkanVertexBuffer(VulkanDevice& device, const std::vector<Vertex>& vertices, VkDeviceSize bufferOffset)
 		: m_device(device), m_bufferOffset(bufferOffset)
 	{
-		init_createVertexBuffers(vertices);
+		init_createVertexBuffer(vertices);
 	}
 
 	VulkanVertexBuffer::~VulkanVertexBuffer()
@@ -14,30 +14,45 @@ namespace jate::rendering::vulkan
 		vkFreeMemory(m_device.getVkDevice(), m_vertexBufferMemory, nullptr);
 	}
 
-	void VulkanVertexBuffer::init_createVertexBuffers(const std::vector<Vertex>& vertices)
+	void VulkanVertexBuffer::init_createVertexBuffer(const std::vector<Vertex>& vertices)
 	{
 		m_vertexCount = static_cast<uint32_t>(vertices.size());
 		assert(m_vertexCount >= 3 && "VertexCount must be at least 3");
 		VkDeviceSize bufferSize = sizeof(Vertex) * m_vertexCount;
 
-		// Create vertex buffer and its device memory
+		// Create staging buffer, a temporary host-visible buffer
+		VkBuffer stagingBuffer;
+		VkDeviceMemory stagingMemory;
 		m_device.createBuffer(
 			bufferSize,
-			VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+			VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
 			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-			m_vertexBuffer, m_vertexBufferMemory
+			stagingBuffer, stagingMemory
 		);
 
-		// Mapping vertex device memory to host memory in order to write into it
+		// Mapping staging device memory to host memory in order to write into it
 		void* hostData;
-		vkMapMemory(m_device.getVkDevice(), m_vertexBufferMemory, m_bufferOffset, bufferSize, 0, &hostData);
+		vkMapMemory(m_device.getVkDevice(), stagingMemory, m_bufferOffset, bufferSize, 0, &hostData);
 
 		// Copy data from the vertices vector to the host data, which is mapped to device memory.
 		// Thanks to the VK_MEMORY_PROPERTY_HOST_COHERENT_BIT flag, this will automatically be flushed to device memory
 		memcpy(hostData, vertices.data(), static_cast<size_t>(bufferSize));
 
 		// Release mapping
-		vkUnmapMemory(m_device.getVkDevice(), m_vertexBufferMemory);
+		vkUnmapMemory(m_device.getVkDevice(), stagingMemory);
+
+		// Create vertex buffer and its local device memory (only visible by device), using transfer queue to get data from staging buffer
+		m_device.createBuffer(
+			bufferSize,
+			VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+			VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+			m_vertexBuffer, m_vertexBufferMemory
+		);
+		m_device.copyBuffer(stagingBuffer, m_vertexBuffer, bufferSize);
+
+		// Destroy staging buffer
+		vkDestroyBuffer(m_device.getVkDevice(), stagingBuffer, nullptr);
+		vkFreeMemory(m_device.getVkDevice(), stagingMemory, nullptr);
 	}
 
 	std::vector<VkVertexInputBindingDescription> VulkanVertexBuffer::Vertex::getBindingDescriptions()

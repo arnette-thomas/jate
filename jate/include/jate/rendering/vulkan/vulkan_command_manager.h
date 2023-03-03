@@ -6,8 +6,49 @@
 #include <jate/rendering/vulkan/vulkan_vertexbuffer.h>
 #include <jate/rendering/vulkan/vulkan_pipeline.h>
 
+#include <functional>
+
 namespace jate::rendering::vulkan
 {
+    class VulkanCommandBuffer
+    {
+    public:
+        enum Usage
+        {
+            Main,
+            OneShot
+        };
+
+        VulkanCommandBuffer(VulkanDevice& device, VkCommandBuffer commandBuffer, Usage commandBufferUsage, std::function<void ()> onDelete = nullptr);
+        ~VulkanCommandBuffer();
+
+        void startRecording();
+        void endRecording();
+
+        void cmdStartRenderPass(const VulkanSwapChain& swapChain, uint32_t frameBufferIndex);
+        void cmdEndRenderPass();
+
+        void cmdBindPipeline(const VulkanPipeline& pipeline);
+        void cmdSetViewport(float x, float y, float width, float height, float minDepth = 0.0f, float maxDepth = 1.0f);
+        void cmdSetScissor(VkOffset2D offset, VkExtent2D extent);
+        
+        void cmdDrawVertexBuffer(const VulkanVertexBuffer& vertexBuffer);
+
+        void cmdCopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
+
+        void submit(VkSemaphore waitSemaphore = nullptr, VkSemaphore signalSemaphore = nullptr, VkFence fence = nullptr);
+        void present(const VulkanSwapChain& swapChain, uint32_t* frameBufferIndex, VkSemaphore waitSemaphore = nullptr);
+
+    private:
+        VkCommandBuffer m_commandBuffer;
+
+        std::function<void ()> m_onDeleteFn;
+
+        VulkanDevice& m_device;
+
+        Usage m_commandBufferUsage;
+    };
+
     class VulkanCommandManager
     {
     public:
@@ -18,36 +59,21 @@ namespace jate::rendering::vulkan
         VulkanCommandManager(const VulkanCommandManager&) = delete;
         VulkanCommandManager& operator=(const VulkanCommandManager&) = delete;
 
-        void changeCommandBufferIndex(size_t index);
-
-        void startRecording();
-        void endRecording();
-
-        void cmdStartRenderPass(VkRenderPass renderPass, uint32_t frameBufferIndex);
-        void cmdEndRenderPass();
-
-        void cmdBindPipeline(const VulkanPipeline& pipeline);
-        void cmdSetViewport(float x, float y, float width, float height, float minDepth = 0.0f, float maxDepth = 1.0f);
-        void cmdSetScissor(VkOffset2D offset, VkExtent2D extent);
-        
-        void cmdDrawVertexBuffer(const VulkanVertexBuffer& vertexBuffer);
-
-        void submit(VkSemaphore waitSemaphore, VkSemaphore signalSemaphore, VkFence fence);
-        void present(uint32_t* frameBufferIndex, VkSemaphore waitSemaphore);
+        VulkanCommandBuffer* getMainCommandBuffer(size_t index);
+        VulkanCommandBuffer createOneShotCommandBuffer();
 
     private:
         // init functions
-        void init_createCommandPool();
+        void init_createCommandPools();
         void init_createCommandBuffers(uint8_t amount);
-
-        inline VkCommandBuffer getCurrentCommandBuffer() const { return m_commandBuffers[m_currentCommandBufferIndex]; }
 
         VulkanDevice& m_device;
         VulkanSwapChain& m_swapChain;
 
-        VkCommandPool m_commandPool;
-        std::vector<VkCommandBuffer> m_commandBuffers;
-        size_t m_currentCommandBufferIndex;
+        VkCommandPool m_mainCommandPool;
+        std::vector<VulkanCommandBuffer> m_mainCommandBuffers;
+
+        VkCommandPool m_oneShotCommandPool;
     };
 }
 

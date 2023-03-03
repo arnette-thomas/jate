@@ -1,6 +1,7 @@
 #include <jate/rendering/vulkan/vulkan_device.h>
 
 #include <jate/rendering/vulkan/vulkan_swapchain.h>
+#include <jate/rendering/vulkan/vulkan_command_manager.h>
 
 #include <spdlog/spdlog.h>
 #include <algorithm>
@@ -104,6 +105,11 @@ namespace jate::rendering::vulkan
         // Retrieve queues
         vkGetDeviceQueue(m_device, m_queueFamilyIndices.graphicsQueueFamily.value(), 0, &m_graphicsQueue);
         vkGetDeviceQueue(m_device, m_queueFamilyIndices.presentQueueFamily.value(), 0, &m_presentQueue);
+    }
+
+    void VulkanDevice::attachCommandManager(VulkanCommandManager* commandManager)
+    {
+        m_commandManager = commandManager;
     }
 
     int32_t VulkanDevice::ratePhysicalDevice(VkPhysicalDevice device) const
@@ -213,6 +219,23 @@ namespace jate::rendering::vulkan
         }
 
         vkBindBufferMemory(m_device, buffer, bufferMemory, 0);
+    }
+
+    void VulkanDevice::copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size)
+    {
+        if (m_commandManager == nullptr)
+        {
+            throw std::runtime_error("Cannot copy buffer in device : command manager is null");
+        }
+
+        {
+            VulkanCommandBuffer cmdBuffer = m_commandManager->createOneShotCommandBuffer();
+            cmdBuffer.startRecording();
+            cmdBuffer.cmdCopyBuffer(srcBuffer, dstBuffer, size);
+            cmdBuffer.endRecording();
+            cmdBuffer.submit();
+            vkQueueWaitIdle(m_graphicsQueue);	// TODO can be optimized using multiple queues and fences ?
+        }
     }
 
     uint32_t VulkanDevice::findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties)

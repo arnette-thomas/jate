@@ -34,7 +34,7 @@ namespace jate::rendering::vulkan
 		inline uint32_t getVertexCount() const { return m_vertexCount; }
 
 	private:
-		void init_createVertexBuffers(const std::vector<Vertex>& vertices);
+		void init_createVertexBuffer(const std::vector<Vertex>& vertices);
 
 		VulkanDevice& m_device;
 

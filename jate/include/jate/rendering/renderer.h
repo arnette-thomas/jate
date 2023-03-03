@@ -9,7 +9,7 @@ namespace jate::rendering
     {
     public:
         ARenderer(Window& window) : m_window(window) {}
-        ~ARenderer(){}
+        virtual ~ARenderer(){}
 
         // Disable copy
         ARenderer(const ARenderer&) = delete;

@@ -9,6 +9,8 @@
 
 namespace jate::rendering::vulkan
 {
+    class VulkanCommandManager;
+    
     class VulkanDevice
     {
     public:
@@ -27,19 +29,23 @@ namespace jate::rendering::vulkan
             bool isComplete() const { return graphicsQueueFamily.has_value() && presentQueueFamily.has_value(); }
         };
 
+        void attachCommandManager(VulkanCommandManager* commandManager);
+
         inline VkDevice getVkDevice() const { return m_device; }
         inline VkPhysicalDevice getPhysicalDevice() const { return m_physicalDevice; }
         inline QueueFamilyIndices getQueueFamilyIndices() const { return m_queueFamilyIndices; }
         inline VkQueue getGraphicsQueue() const { return m_graphicsQueue; }
         inline VkQueue getPresentQueue() const { return m_presentQueue; }
 
-        // Buffer helper function
+        // Buffer helper functions
         void createBuffer(
           VkDeviceSize size,
           VkBufferUsageFlags usage,
           VkMemoryPropertyFlags properties,
           VkBuffer &buffer,
           VkDeviceMemory &bufferMemory);
+
+        void copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
 
         uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
 
@@ -75,6 +81,8 @@ namespace jate::rendering::vulkan
         VkDevice m_device;
 
         QueueFamilyIndices m_queueFamilyIndices;
+
+        VulkanCommandManager* m_commandManager;
 
         // Queues
         VkQueue m_graphicsQueue;

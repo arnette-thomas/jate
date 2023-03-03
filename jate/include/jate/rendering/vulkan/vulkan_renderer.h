@@ -45,6 +45,7 @@ namespace jate::rendering::vulkan
         std::vector<VkFence> m_inFlightFences;
 
         uint32_t m_currentImageIndex;
+        VulkanCommandBuffer* m_currentFrameCommandBuffer = nullptr;
 
         const uint8_t MAX_FRAMES_IN_FLIGHT = 2;
         uint8_t m_currentFrameInFlight = 0;

@@ -27,6 +27,10 @@ namespace jate::rendering::vulkan
 
     VulkanRenderer::~VulkanRenderer()
     {
+        vkDeviceWaitIdle(m_vulkanDevice.getVkDevice());
+
+        m_vulkanCommandManager = nullptr;
+
         // Sync objects
         for (auto imageAvailableSemaphore : m_imageAvailableSemaphores)
         {
@@ -52,6 +56,7 @@ namespace jate::rendering::vulkan
     void VulkanRenderer::init_createCommandManager()
     {
         m_vulkanCommandManager = std::make_unique<VulkanCommandManager>(m_vulkanDevice, *m_vulkanSwapChain, MAX_FRAMES_IN_FLIGHT);
+        m_vulkanDevice.attachCommandManager(m_vulkanCommandManager.get());
     }
 
     void VulkanRenderer::init_createPipelineLayout()
@@ -139,26 +144,26 @@ namespace jate::rendering::vulkan
             m_currentImageIndex = m_vulkanSwapChain->acquireNextImage(m_imageAvailableSemaphores[m_currentFrameInFlight]);
         }
 
-        m_vulkanCommandManager->changeCommandBufferIndex(static_cast<size_t>(m_currentFrameInFlight));
+        m_currentFrameCommandBuffer = m_vulkanCommandManager->getMainCommandBuffer(static_cast<size_t>(m_currentFrameInFlight));
 
-        m_vulkanCommandManager->startRecording();
-        m_vulkanCommandManager->cmdStartRenderPass(m_vulkanSwapChain->getRenderPass(), m_currentImageIndex);
-        m_vulkanCommandManager->cmdBindPipeline(*m_vulkanPipeline);
+        m_currentFrameCommandBuffer->startRecording();
+        m_currentFrameCommandBuffer->cmdStartRenderPass(*m_vulkanSwapChain, m_currentImageIndex);
+        m_currentFrameCommandBuffer->cmdBindPipeline(*m_vulkanPipeline);
 
         auto swapChainExtent = m_vulkanSwapChain->getExtent();
-        m_vulkanCommandManager->cmdSetViewport(0.0f, 0.0f, static_cast<float>(swapChainExtent.width), static_cast<float>(swapChainExtent.height));
-        m_vulkanCommandManager->cmdSetScissor({0, 0}, swapChainExtent);
+        m_currentFrameCommandBuffer->cmdSetViewport(0.0f, 0.0f, static_cast<float>(swapChainExtent.width), static_cast<float>(swapChainExtent.height));
+        m_currentFrameCommandBuffer->cmdSetScissor({0, 0}, swapChainExtent);
 
-        m_vulkanCommandManager->cmdDrawVertexBuffer(*m_testingVertexBuffer);
+        m_currentFrameCommandBuffer->cmdDrawVertexBuffer(*m_testingVertexBuffer);
     }
 
     void VulkanRenderer::endFrame()
     {
-        m_vulkanCommandManager->cmdEndRenderPass();
-        m_vulkanCommandManager->endRecording();
+        m_currentFrameCommandBuffer->cmdEndRenderPass();
+        m_currentFrameCommandBuffer->endRecording();
 
-        m_vulkanCommandManager->submit(m_imageAvailableSemaphores[m_currentFrameInFlight], m_renderFinishedSemaphores[m_currentFrameInFlight], m_inFlightFences[m_currentFrameInFlight]);
-        m_vulkanCommandManager->present(&m_currentImageIndex, m_renderFinishedSemaphores[m_currentFrameInFlight]);
+        m_currentFrameCommandBuffer->submit(m_imageAvailableSemaphores[m_currentFrameInFlight], m_renderFinishedSemaphores[m_currentFrameInFlight], m_inFlightFences[m_currentFrameInFlight]);
+        m_currentFrameCommandBuffer->present(*m_vulkanSwapChain, &m_currentImageIndex, m_renderFinishedSemaphores[m_currentFrameInFlight]);
 
         m_currentFrameInFlight = (m_currentFrameInFlight + 1) % MAX_FRAMES_IN_FLIGHT;
     }
