@@ -185,12 +185,22 @@ namespace jate::rendering::vulkan
 
     void VulkanCommandBuffer::cmdDrawVertexBuffer(const VulkanVertexBuffer& vertexBuffer)
     {
-
         VkBuffer buffers[] = { vertexBuffer.getVkBuffer() };
 		VkDeviceSize bufferOffsets[] = { vertexBuffer.getBufferOffset() };
 		vkCmdBindVertexBuffers(m_commandBuffer, 0, 1, buffers, bufferOffsets);
 
         vkCmdDraw(m_commandBuffer, vertexBuffer.getVertexCount(), 1, 0, 0);
+    }
+
+    void VulkanCommandBuffer::cmdDrawIndexedVertexBuffer(const VulkanVertexBuffer &vertexBuffer, const VulkanIndexBuffer &indexBuffer)
+    {
+        VkBuffer buffers[] = { vertexBuffer.getVkBuffer() };
+		VkDeviceSize bufferOffsets[] = { vertexBuffer.getBufferOffset() };
+		vkCmdBindVertexBuffers(m_commandBuffer, 0, 1, buffers, bufferOffsets);
+
+        vkCmdBindIndexBuffer(m_commandBuffer, indexBuffer.getVkBuffer(), indexBuffer.getBufferOffset(), VkIndexType::VK_INDEX_TYPE_UINT32);
+
+        vkCmdDrawIndexed(m_commandBuffer, indexBuffer.getIndexCount(), 1, 0, vertexBuffer.getBufferOffset(), 0);
     }
 
     void VulkanCommandBuffer::cmdCopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size)

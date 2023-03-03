@@ -8,7 +8,6 @@ namespace jate::rendering
     class ARenderer
     {
     public:
-        ARenderer(Window& window) : m_window(window) {}
         virtual ~ARenderer(){}
 
         // Disable copy
@@ -19,6 +18,8 @@ namespace jate::rendering
         virtual void endFrame() = 0;
 
     protected:
+        ARenderer(Window& window) : m_window(window) {}
+        
         Window& m_window;
     };
 }

@@ -3,7 +3,7 @@
 
 #include <jate/rendering/vulkan/vulkan_device.h>
 #include <jate/rendering/vulkan/vulkan_swapchain.h>
-#include <jate/rendering/vulkan/vulkan_vertexbuffer.h>
+#include <jate/rendering/vulkan/vulkan_buffers.h>
 #include <jate/rendering/vulkan/vulkan_pipeline.h>
 
 #include <functional>
@@ -33,6 +33,7 @@ namespace jate::rendering::vulkan
         void cmdSetScissor(VkOffset2D offset, VkExtent2D extent);
         
         void cmdDrawVertexBuffer(const VulkanVertexBuffer& vertexBuffer);
+        void cmdDrawIndexedVertexBuffer(const VulkanVertexBuffer& vertexBuffer, const VulkanIndexBuffer& indexBuffer);
 
         void cmdCopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
 

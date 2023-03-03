@@ -17,12 +17,18 @@ namespace jate::rendering::vulkan
         init_createSyncObjects();
 
         // TEMPORARY
-        std::vector<VulkanVertexBuffer::Vertex> vertices(3);
-        vertices[0] = VulkanVertexBuffer::Vertex {{0, 0.5}, {1, 0, 0}};
-        vertices[1] = VulkanVertexBuffer::Vertex {{-0.5, -0.5}, {0, 1, 0}};
-        vertices[2] = VulkanVertexBuffer::Vertex {{0.5, -0.5}, {0, 0, 1}};
-
+        const std::vector<VulkanVertexBuffer::Vertex> vertices = {
+            {{-0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}},
+            {{0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}},
+            {{0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}},
+            {{-0.5f, 0.5f}, {1.0f, 1.0f, 1.0f}}
+        };
         m_testingVertexBuffer = std::make_unique<VulkanVertexBuffer>(m_vulkanDevice, vertices);
+
+        const std::vector<uint32_t> indices = {
+            0, 1, 2, 2, 3, 0
+        };
+        m_testingIndexBuffer = std::make_unique<VulkanIndexBuffer>(m_vulkanDevice, indices);
     }
 
     VulkanRenderer::~VulkanRenderer()
@@ -154,7 +160,7 @@ namespace jate::rendering::vulkan
         m_currentFrameCommandBuffer->cmdSetViewport(0.0f, 0.0f, static_cast<float>(swapChainExtent.width), static_cast<float>(swapChainExtent.height));
         m_currentFrameCommandBuffer->cmdSetScissor({0, 0}, swapChainExtent);
 
-        m_currentFrameCommandBuffer->cmdDrawVertexBuffer(*m_testingVertexBuffer);
+        m_currentFrameCommandBuffer->cmdDrawIndexedVertexBuffer(*m_testingVertexBuffer, *m_testingIndexBuffer);
     }
 
     void VulkanRenderer::endFrame()

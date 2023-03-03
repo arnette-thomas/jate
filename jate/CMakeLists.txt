@@ -81,19 +81,7 @@ endif()
 
 add_subdirectory(extern)
 
-SET(JATE_SOURCES
-    src/application.cpp
-
-    src/window/window.cpp
-
-    src/rendering/vulkan/vulkan_instance.cpp
-    src/rendering/vulkan/vulkan_device.cpp
-    src/rendering/vulkan/vulkan_swapchain.cpp
-    src/rendering/vulkan/vulkan_pipeline.cpp
-    src/rendering/vulkan/vulkan_vertexbuffer.cpp
-    src/rendering/vulkan/vulkan_command_manager.cpp
-    src/rendering/vulkan/vulkan_renderer.cpp
-)
+FILE(GLOB_RECURSE JATE_SOURCES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} src/*.cpp)
 
 add_library(${PROJECT_NAME}
     ${JATE_SOURCES}

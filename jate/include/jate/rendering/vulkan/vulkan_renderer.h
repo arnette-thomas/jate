@@ -52,6 +52,7 @@ namespace jate::rendering::vulkan
 
         // TEMPORARY
         std::unique_ptr<VulkanVertexBuffer> m_testingVertexBuffer;
+        std::unique_ptr<VulkanIndexBuffer> m_testingIndexBuffer;
     };
 }
 
