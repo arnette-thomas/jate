@@ -1,9 +1,11 @@
 #include <jate/rendering/vulkan/vulkan_renderer.h>
 #include <jate/rendering/vulkan/exceptions.h>
+#include <jate/rendering/data_structs.h>
 
 #include <spdlog/spdlog.h>
+#include <vector>
 
-// TEMPORARY
+// TEMPORARY (?)
 #include <jate/models/transform.h>
 
 namespace jate::rendering::vulkan
@@ -20,36 +22,12 @@ namespace jate::rendering::vulkan
         init_createSyncObjects();
 
         // TEMPORARY
-        // const std::vector<VulkanVertexBuffer::Vertex> vertices = {
-        //     {{-0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}},
-        //     {{0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}},
-        //     {{0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}},
-        //     {{-0.5f, 0.5f}, {1.0f, 1.0f, 1.0f}}
-        // };
-
-        std::vector<VulkanVertexBuffer::Vertex> vertices;
-
-        models::Transform transform(maths::Vector3f(0.3f, 0.3f, 0.0f), maths::Quaternionf::fromAxisAngle(maths::Vector3f::back, 3.14 / 4), maths::Vector3f(0.5f, 1.f, 1.0f));
-        glm::mat4 transformMatrix = transform.getMatrix();
-        const std::vector<glm::vec4> vertexHomogeneous = {
-                {-0.5f, -0.5f, 0.5f, 1.f},
-                {0.5f, -0.5f, 0.5f, 1.f},
-                {0.5f, 0.5f, 0.5f, 1.f},
-                {-0.5f, 0.5f, 0.5f, 1.f}
+        const std::vector<VertexData> vertices = {
+            {{-0.5f, -0.5f, 0.5f}, {1.0f, 0.0f, 0.0f}},
+            {{0.5f, -0.5f, 0.5f}, {0.0f, 1.0f, 0.0f}},
+            {{0.5f, 0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}},
+            {{-0.5f, 0.5f, 0.5f}, {1.0f, 1.0f, 1.0f}}
         };
-        const std::vector<glm::vec3> colors = {
-            {1.0f, 0.0f, 0.0f},
-            {0.0f, 1.0f, 0.0f},
-            {0.0f, 0.0f, 1.0f},
-            {1.0f, 1.0f, 1.0f}
-        };
-
-        for (int i = 0; i < vertexHomogeneous.size(); i++)
-        {
-            glm::vec4 result = transformMatrix * vertexHomogeneous[i];
-            VulkanVertexBuffer::Vertex vertex{{result.x, result.y}, colors[i]};
-            vertices.push_back(vertex);
-        }
 
         m_testingVertexBuffer = std::make_unique<VulkanVertexBuffer>(m_vulkanDevice, vertices);
 
@@ -95,12 +73,18 @@ namespace jate::rendering::vulkan
 
     void VulkanRenderer::init_createPipelineLayout()
     {
+        // Push constant
+        VkPushConstantRange pushConstantRange{};
+        pushConstantRange.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
+        pushConstantRange.offset = 0;
+        pushConstantRange.size = sizeof(PushConstantData);
+
         VkPipelineLayoutCreateInfo layoutInfo{};
 		layoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
 		layoutInfo.setLayoutCount = 0;
 		layoutInfo.pSetLayouts = nullptr;
-		layoutInfo.pushConstantRangeCount = 0;
-		layoutInfo.pPushConstantRanges = nullptr;
+		layoutInfo.pushConstantRangeCount = 1;
+		layoutInfo.pPushConstantRanges = &pushConstantRange;
 
 		if (vkCreatePipelineLayout(m_vulkanDevice.getVkDevice(), &layoutInfo, nullptr, &m_pipelineLayout) != VK_SUCCESS)
 		{
@@ -189,6 +173,13 @@ namespace jate::rendering::vulkan
         m_currentFrameCommandBuffer->cmdSetScissor({0, 0}, swapChainExtent);
 
         // Testing
+        models::Transform transform(
+            maths::Vector3f(0.3f, 0.3f, 0.0f),
+            maths::Quaternionf::fromAxisAngle(maths::Vector3f::back, 3.14 / 4),
+            maths::Vector3f(0.5f, 1.f, 1.0f)
+        );
+        PushConstantData pushConstant{transform.getMatrix()};
+        m_currentFrameCommandBuffer->cmdPushConstants(pushConstant, m_pipelineLayout);
         m_currentFrameCommandBuffer->cmdDrawIndexedVertexBuffer(*m_testingVertexBuffer, *m_testingIndexBuffer);
     }
 

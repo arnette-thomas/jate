@@ -68,8 +68,8 @@ namespace jate::rendering::vulkan
 		shaderStages[1].pSpecializationInfo = nullptr;
 
 		// Setup vertex input
-		auto bindingDescriptions = VulkanVertexBuffer::Vertex::getBindingDescriptions();
-		auto attributeDescriptions = VulkanVertexBuffer::Vertex::getAttributeDescriptions();
+		auto bindingDescriptions = VulkanVertexBuffer::getVertexBindingDescriptions();
+		auto attributeDescriptions = VulkanVertexBuffer::getVertexAttributeDescriptions();
 		VkPipelineVertexInputStateCreateInfo vertexInputInfo{};
 		vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
 		vertexInputInfo.vertexBindingDescriptionCount = static_cast<uint32_t>(bindingDescriptions.size());

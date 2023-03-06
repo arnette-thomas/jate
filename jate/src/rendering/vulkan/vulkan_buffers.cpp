@@ -42,7 +42,7 @@ namespace jate::rendering::vulkan
 
 	// --- VulkanVertexBuffer
 
-    VulkanVertexBuffer::VulkanVertexBuffer(VulkanDevice& device, const std::vector<Vertex>& vertices, VkDeviceSize bufferOffset)
+    VulkanVertexBuffer::VulkanVertexBuffer(VulkanDevice& device, const std::vector<VertexData>& vertices, VkDeviceSize bufferOffset)
 		: AVulkanBuffer(device, bufferOffset)
 	{
 		init_createVertexBuffer(vertices);
@@ -53,11 +53,11 @@ namespace jate::rendering::vulkan
 		// buffer and memory deletion happens in parent class 
 	}
 
-	void VulkanVertexBuffer::init_createVertexBuffer(const std::vector<Vertex>& vertices)
+	void VulkanVertexBuffer::init_createVertexBuffer(const std::vector<VertexData>& vertices)
 	{
 		m_vertexCount = static_cast<uint32_t>(vertices.size());
 		assert(m_vertexCount >= 3 && "VertexCount must be at least 3");
-		VkDeviceSize bufferSize = sizeof(Vertex) * m_vertexCount;
+		VkDeviceSize bufferSize = sizeof(VertexData) * m_vertexCount;
 
 		// Create staging buffer, a temporary host-visible buffer
 		VkBuffer stagingBuffer;
@@ -78,29 +78,29 @@ namespace jate::rendering::vulkan
 		vkFreeMemory(m_device.getVkDevice(), stagingMemory, nullptr);
 	}
 
-	std::vector<VkVertexInputBindingDescription> VulkanVertexBuffer::Vertex::getBindingDescriptions()
+	std::vector<VkVertexInputBindingDescription> VulkanVertexBuffer::getVertexBindingDescriptions()
 	{
 		std::vector<VkVertexInputBindingDescription> bindingDescriptions(1);
 		bindingDescriptions[0].binding = 0;
 		bindingDescriptions[0].inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
-		bindingDescriptions[0].stride = sizeof(Vertex);
+		bindingDescriptions[0].stride = sizeof(VertexData);
 		return bindingDescriptions;
 	}
 
-	std::vector<VkVertexInputAttributeDescription> VulkanVertexBuffer::Vertex::getAttributeDescriptions()
+	std::vector<VkVertexInputAttributeDescription> VulkanVertexBuffer::getVertexAttributeDescriptions()
 	{
 		std::vector<VkVertexInputAttributeDescription> attributeDescriptions(2);
 
 		// Position
 		attributeDescriptions[0].binding = 0;
 		attributeDescriptions[0].location = 0;
-		attributeDescriptions[0].offset = offsetof(Vertex, position);
+		attributeDescriptions[0].offset = offsetof(VertexData, position);
 		attributeDescriptions[0].format = VK_FORMAT_R32G32_SFLOAT;
 
 		// Color
 		attributeDescriptions[1].binding = 0;
 		attributeDescriptions[1].location = 1;
-		attributeDescriptions[1].offset = offsetof(Vertex, color);
+		attributeDescriptions[1].offset = offsetof(VertexData, color);
 		attributeDescriptions[1].format = VK_FORMAT_R32G32B32_SFLOAT;
 
 		return attributeDescriptions;

@@ -183,7 +183,12 @@ namespace jate::rendering::vulkan
         vkCmdSetScissor(m_commandBuffer, 0, 1, &scissor);
     }
 
-    void VulkanCommandBuffer::cmdDrawVertexBuffer(const VulkanVertexBuffer& vertexBuffer)
+    void VulkanCommandBuffer::cmdPushConstants(const PushConstantData &data, VkPipelineLayout pipelineLayout)
+    {
+        vkCmdPushConstants(m_commandBuffer, pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(data), &data);
+    }
+
+    void VulkanCommandBuffer::cmdDrawVertexBuffer(const VulkanVertexBuffer &vertexBuffer)
     {
         VkBuffer buffers[] = { vertexBuffer.getVkBuffer() };
 		VkDeviceSize bufferOffsets[] = { vertexBuffer.getBufferOffset() };

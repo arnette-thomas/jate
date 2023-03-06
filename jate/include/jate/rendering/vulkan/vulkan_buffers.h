@@ -6,6 +6,7 @@
 #include <glm/glm.hpp>
 
 #include <jate/rendering/vulkan/vulkan_device.h>
+#include <jate/rendering/data_structs.h>
 
 namespace jate::rendering::vulkan
 {
@@ -31,23 +32,16 @@ namespace jate::rendering::vulkan
     class VulkanVertexBuffer : public AVulkanBuffer
     {
     public:
-
-		struct Vertex
-		{
-			glm::vec2 position;
-			glm::vec3 color;
-
-			static std::vector<VkVertexInputBindingDescription> getBindingDescriptions();
-			static std::vector<VkVertexInputAttributeDescription> getAttributeDescriptions();
-		};
-
-		VulkanVertexBuffer(VulkanDevice& device, const std::vector<Vertex>& vertices, VkDeviceSize bufferOffset = 0);
+		VulkanVertexBuffer(VulkanDevice& device, const std::vector<VertexData>& vertices, VkDeviceSize bufferOffset = 0);
 		virtual ~VulkanVertexBuffer();
 
 		inline uint32_t getVertexCount() const { return m_vertexCount; }
 
+		static std::vector<VkVertexInputBindingDescription> getVertexBindingDescriptions();
+		static std::vector<VkVertexInputAttributeDescription> getVertexAttributeDescriptions();
+
 	private:
-		void init_createVertexBuffer(const std::vector<Vertex>& vertices);
+		void init_createVertexBuffer(const std::vector<VertexData>& vertices);
 
 		uint32_t m_vertexCount;
     };

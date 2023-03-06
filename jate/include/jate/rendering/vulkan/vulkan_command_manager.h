@@ -5,6 +5,7 @@
 #include <jate/rendering/vulkan/vulkan_swapchain.h>
 #include <jate/rendering/vulkan/vulkan_buffers.h>
 #include <jate/rendering/vulkan/vulkan_pipeline.h>
+#include <jate/rendering/data_structs.h>
 
 #include <functional>
 
@@ -32,6 +33,7 @@ namespace jate::rendering::vulkan
         void cmdSetViewport(float x, float y, float width, float height, float minDepth = 0.0f, float maxDepth = 1.0f);
         void cmdSetScissor(VkOffset2D offset, VkExtent2D extent);
         
+        void cmdPushConstants(const PushConstantData& data, VkPipelineLayout pipelineLayout);
         void cmdDrawVertexBuffer(const VulkanVertexBuffer& vertexBuffer);
         void cmdDrawIndexedVertexBuffer(const VulkanVertexBuffer& vertexBuffer, const VulkanIndexBuffer& indexBuffer);
 
