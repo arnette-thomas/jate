@@ -3,6 +3,9 @@
 
 #include <spdlog/spdlog.h>
 
+// TEMPORARY
+#include <jate/models/transform.h>
+
 namespace jate::rendering::vulkan
 {
     VulkanRenderer::VulkanRenderer(Window& window) :
@@ -17,12 +20,37 @@ namespace jate::rendering::vulkan
         init_createSyncObjects();
 
         // TEMPORARY
-        const std::vector<VulkanVertexBuffer::Vertex> vertices = {
-            {{-0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}},
-            {{0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}},
-            {{0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}},
-            {{-0.5f, 0.5f}, {1.0f, 1.0f, 1.0f}}
+        // const std::vector<VulkanVertexBuffer::Vertex> vertices = {
+        //     {{-0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}},
+        //     {{0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}},
+        //     {{0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}},
+        //     {{-0.5f, 0.5f}, {1.0f, 1.0f, 1.0f}}
+        // };
+
+        std::vector<VulkanVertexBuffer::Vertex> vertices;
+
+        models::Transform transform(maths::Vector3f(0.3f, 0.3f, 0.0f), maths::Quaternionf::fromAxisAngle(maths::Vector3f::back, 3.14 / 4), maths::Vector3f(0.5f, 1.f, 1.0f));
+        glm::mat4 transformMatrix = transform.getMatrix();
+        const std::vector<glm::vec4> vertexHomogeneous = {
+                {-0.5f, -0.5f, 0.5f, 1.f},
+                {0.5f, -0.5f, 0.5f, 1.f},
+                {0.5f, 0.5f, 0.5f, 1.f},
+                {-0.5f, 0.5f, 0.5f, 1.f}
         };
+        const std::vector<glm::vec3> colors = {
+            {1.0f, 0.0f, 0.0f},
+            {0.0f, 1.0f, 0.0f},
+            {0.0f, 0.0f, 1.0f},
+            {1.0f, 1.0f, 1.0f}
+        };
+
+        for (int i = 0; i < vertexHomogeneous.size(); i++)
+        {
+            glm::vec4 result = transformMatrix * vertexHomogeneous[i];
+            VulkanVertexBuffer::Vertex vertex{{result.x, result.y}, colors[i]};
+            vertices.push_back(vertex);
+        }
+
         m_testingVertexBuffer = std::make_unique<VulkanVertexBuffer>(m_vulkanDevice, vertices);
 
         const std::vector<uint32_t> indices = {
@@ -160,6 +188,7 @@ namespace jate::rendering::vulkan
         m_currentFrameCommandBuffer->cmdSetViewport(0.0f, 0.0f, static_cast<float>(swapChainExtent.width), static_cast<float>(swapChainExtent.height));
         m_currentFrameCommandBuffer->cmdSetScissor({0, 0}, swapChainExtent);
 
+        // Testing
         m_currentFrameCommandBuffer->cmdDrawIndexedVertexBuffer(*m_testingVertexBuffer, *m_testingIndexBuffer);
     }
 

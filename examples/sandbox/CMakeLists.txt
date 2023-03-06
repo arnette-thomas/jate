@@ -8,7 +8,7 @@ target_link_libraries(sandbox
     PRIVATE jate
 )
 
-target_compile_features(sandbox PUBLIC cxx_std_17)
+target_compile_features(sandbox PUBLIC cxx_std_20)
 
 # Copy jate resources next to executable
 set(JATE_RESOURCES_DIR "$<TARGET_FILE_DIR:sandbox>/jate_resources")
