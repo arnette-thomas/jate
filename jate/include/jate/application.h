@@ -3,8 +3,11 @@
 
 #include <jate/window/window.h>
 #include <jate/rendering/renderer.h>
+#include <jate/models/world.h>
+#include <jate/systems/system.h>
 
 #include <memory>
+#include <map>
 
 namespace jate
 {
@@ -14,6 +17,8 @@ namespace jate
         Application();
         ~Application();
 
+        models::World* createWorld();
+
         void run();
     
     private:
@@ -21,6 +26,8 @@ namespace jate
         Window m_window;
         
         std::unique_ptr<rendering::ARenderer> m_renderer;
+        std::unique_ptr<models::World> m_world;
+        
     };
 }
 

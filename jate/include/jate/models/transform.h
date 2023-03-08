@@ -18,6 +18,7 @@ namespace jate::models
         jate::maths::Vector3f scale;
 
         Transform(jate::maths::Vector3f _position, jate::maths::Quaternionf _rotation, jate::maths::Vector3f _scale) : position(_position), rotation(_rotation), scale(_scale) {}
+        Transform() : position(jate::maths::Vector3f::zero), rotation(jate::maths::Quaternionf::identity), scale(jate::maths::Vector3f::one) {}
 
         glm::mat4 getMatrix() const
         {
