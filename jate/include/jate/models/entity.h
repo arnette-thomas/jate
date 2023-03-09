@@ -6,6 +6,7 @@
 #include <jate/utils/concepts.h>
 
 #include <vector>
+#include <memory>
 
 namespace jate::models
 {
@@ -17,12 +18,14 @@ namespace jate::models
         Entity(World* world);
         ~Entity();
 
+        Entity(const Entity&) = delete;
+
         inline Transform& getTransform() { return m_transform; }
 
         template<utils::concepts::component_type Comp>
-        components::AComponent& addComponent()
+        Comp* addComponent()
         {
-            components::AComponent& component = m_components.emplace_back<Comp>(*this);
+            Comp* component = dynamic_cast<Comp*>(m_components.emplace_back(std::make_unique<Comp>(this)).get());
             signalComponentAddedToWorld(component);
             return component;
         }
@@ -30,12 +33,12 @@ namespace jate::models
     private:
         // Triggers the onComponentAdded in World.
         // This must be defined in cpp, since it requires the full declaration of the World class.
-        void signalComponentAddedToWorld(components::AComponent& component);
+        void signalComponentAddedToWorld(components::AComponent* component);
 
         World* m_world;
         uint32_t m_id;
         Transform m_transform;
-        std::vector<components::AComponent> m_components;
+        std::vector<std::unique_ptr<components::AComponent>> m_components;
     };
 }
 

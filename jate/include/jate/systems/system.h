@@ -13,8 +13,8 @@ namespace jate::systems
     class ASystem
     {
     public:
-        virtual void onComponentAdded(components::AComponent& component) = 0;
-        virtual void onComponentRemoved(components::AComponent& component) = 0;
+        virtual void onComponentAdded(components::AComponent* component) = 0;
+        virtual void onComponentRemoved(components::AComponent* component) = 0;
         virtual void tick() = 0;
     };
 }

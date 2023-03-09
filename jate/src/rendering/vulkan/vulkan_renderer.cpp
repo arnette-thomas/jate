@@ -5,9 +5,6 @@
 #include <spdlog/spdlog.h>
 #include <vector>
 
-// TEMPORARY (?)
-#include <jate/models/transform.h>
-
 namespace jate::rendering::vulkan
 {
     VulkanRenderer::VulkanRenderer(Window& window) :
@@ -20,21 +17,6 @@ namespace jate::rendering::vulkan
         init_createPipelineLayout();
         init_createPipeline();
         init_createSyncObjects();
-
-        // TEMPORARY
-        const std::vector<VertexData> vertices = {
-            {{-0.5f, -0.5f, 0.5f}, {1.0f, 0.0f, 0.0f}},
-            {{0.5f, -0.5f, 0.5f}, {0.0f, 1.0f, 0.0f}},
-            {{0.5f, 0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}},
-            {{-0.5f, 0.5f, 0.5f}, {1.0f, 1.0f, 1.0f}}
-        };
-
-        m_testingVertexBuffer = std::make_unique<VulkanVertexBuffer>(m_vulkanDevice, vertices);
-
-        const std::vector<uint32_t> indices = {
-            0, 1, 2, 2, 3, 0
-        };
-        m_testingIndexBuffer = std::make_unique<VulkanIndexBuffer>(m_vulkanDevice, indices);
     }
 
     VulkanRenderer::~VulkanRenderer()
@@ -171,16 +153,6 @@ namespace jate::rendering::vulkan
         auto swapChainExtent = m_vulkanSwapChain->getExtent();
         m_currentFrameCommandBuffer->cmdSetViewport(0.0f, 0.0f, static_cast<float>(swapChainExtent.width), static_cast<float>(swapChainExtent.height));
         m_currentFrameCommandBuffer->cmdSetScissor({0, 0}, swapChainExtent);
-
-        // Testing
-        models::Transform transform(
-            maths::Vector3f(0.3f, 0.3f, 0.0f),
-            maths::Quaternionf::fromAxisAngle(maths::Vector3f::back, 3.14 / 4),
-            maths::Vector3f(0.5f, 1.f, 1.0f)
-        );
-        PushConstantData pushConstant{transform.getMatrix()};
-        m_currentFrameCommandBuffer->cmdPushConstants(pushConstant, m_pipelineLayout);
-        m_currentFrameCommandBuffer->cmdDrawIndexedVertexBuffer(*m_testingVertexBuffer, *m_testingIndexBuffer);
     }
 
     void VulkanRenderer::endFrame()
@@ -192,5 +164,65 @@ namespace jate::rendering::vulkan
         m_currentFrameCommandBuffer->present(*m_vulkanSwapChain, &m_currentImageIndex, m_renderFinishedSemaphores[m_currentFrameInFlight]);
 
         m_currentFrameInFlight = (m_currentFrameInFlight + 1) % MAX_FRAMES_IN_FLIGHT;
+    }
+
+    renderer_memory_slot_id VulkanRenderer::allocateVertexData(const std::vector<VertexData> &vertices)
+    {
+        static renderer_memory_slot_id s_nextVertexSlot = 0;
+        if (m_vertexBufferSlots.size() > m_vertexBufferSlots.max_size())
+        {
+            throw std::runtime_error("[Vulkan Renderer] Could not allocate vertex data : no memory slot available");
+        }
+
+        auto insertedElementInfo = m_vertexBufferSlots.insert({s_nextVertexSlot, std::make_unique<VulkanVertexBuffer>(m_vulkanDevice, vertices)});
+
+        s_nextVertexSlot++;
+
+        return (insertedElementInfo.first)->first;
+    }
+
+    void VulkanRenderer::freeVertexData(renderer_memory_slot_id slotId)
+    {
+        m_vertexBufferSlots.erase(slotId);
+    }
+    
+    renderer_memory_slot_id VulkanRenderer::allocateIndexData(const std::vector<uint32_t> &indices)
+    {
+        static renderer_memory_slot_id s_nextIndexSlot = 0;
+        if (m_indexBufferSlots.size() > m_indexBufferSlots.max_size())
+        {
+            throw std::runtime_error("[Vulkan Renderer] Could not allocate index data : no memory slot available");
+        }
+
+        auto insertedElementInfo = m_indexBufferSlots.insert({s_nextIndexSlot, std::make_unique<VulkanIndexBuffer>(m_vulkanDevice, indices)});
+
+        s_nextIndexSlot++;
+
+        return (insertedElementInfo.first)->first;
+    }
+
+    void VulkanRenderer::freeIndexData(renderer_memory_slot_id slotId)
+    {
+        m_indexBufferSlots.erase(slotId);
+    }
+
+    void VulkanRenderer::drawIndexed(renderer_memory_slot_id verticesSlotId, renderer_memory_slot_id indicesSlotId, const PushConstantData &pushConstantData)
+    {
+        auto vertexBufferIt = m_vertexBufferSlots.find(verticesSlotId);
+        if (vertexBufferIt == m_vertexBufferSlots.end())
+        {
+            spdlog::error("[Vulkan Renderer] Using vertex slot id {}, but memory is not allocated", verticesSlotId);
+            return;
+        }
+
+        auto indexBufferIt = m_indexBufferSlots.find(indicesSlotId);
+        if (indexBufferIt == m_indexBufferSlots.end())
+        {
+            spdlog::error("[Vulkan Renderer] Using index slot id {}, but memory is not allocated", indicesSlotId);
+            return;
+        }
+
+        m_currentFrameCommandBuffer->cmdPushConstants(pushConstantData, m_pipelineLayout);
+        m_currentFrameCommandBuffer->cmdDrawIndexedVertexBuffer(*(vertexBufferIt->second), *(indexBufferIt->second));
     }
 }

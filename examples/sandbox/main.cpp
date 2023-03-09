@@ -10,7 +10,9 @@ int main(int argc, char** argv)
     auto world = app.createWorld();
 
     auto rectangle = world->spawnEntity();
-    rectangle.addComponent<jate::components::Rect2DRenderUnit>();
+    auto rectRenderUnit = rectangle->addComponent<jate::components::Rect2DRenderUnit>();
+
+    rectRenderUnit->setRect(0.f, 0.f, 0.5f, 0.3f);
 
     app.run();
     return EXIT_SUCCESS;

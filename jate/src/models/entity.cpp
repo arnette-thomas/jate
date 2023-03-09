@@ -2,6 +2,8 @@
 
 #include <jate/models/world.h>
 
+#include <iostream>
+
 namespace jate::models
 {
     Entity::Entity(World* world) : m_world(world)
@@ -13,13 +15,13 @@ namespace jate::models
 
     Entity::~Entity()
     {
-        for(components::AComponent& comp : m_components)
+        for(const auto& comp : m_components)
         {
-            m_world->onComponentRemoved(comp);
+            m_world->onComponentRemoved(comp.get());
         }
     }
 
-    void Entity::signalComponentAddedToWorld(components::AComponent &component)
+    void Entity::signalComponentAddedToWorld(components::AComponent* component)
     {
         m_world->onComponentAdded(component);
     }

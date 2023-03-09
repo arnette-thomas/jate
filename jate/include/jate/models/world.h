@@ -18,20 +18,20 @@ namespace jate::models
     public:
         World(Application& app, rendering::ARenderer* renderer);
 
-        Entity& spawnEntity();
+        Entity* spawnEntity();
 
         inline Application& getApplication() const { return m_application; }
         void tickSystems();
 
-        void onComponentAdded(components::AComponent& component);
-        void onComponentRemoved(components::AComponent& component);
+        void onComponentAdded(components::AComponent* component);
+        void onComponentRemoved(components::AComponent* component);
 
     private:
         void init_registerSystems();
 
-        std::vector<Entity> m_entities;
-        Application& m_application;
         std::map<systems::SystemEnum, std::unique_ptr<systems::ASystem>> m_systems;
+        std::vector<std::unique_ptr<Entity>> m_entities;
+        Application& m_application;
 
         rendering::ARenderer* m_renderer;
 

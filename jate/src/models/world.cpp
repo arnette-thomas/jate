@@ -14,9 +14,9 @@ namespace jate::models
         m_systems.emplace(systems::SystemEnum::RENDER_SYSTEM, std::make_unique<systems::RenderSystem>(m_renderer));
     }
 
-    Entity& World::spawnEntity()
+    Entity* World::spawnEntity()
     {
-        Entity& spawnedEntity = m_entities.emplace_back(this);
+        Entity* spawnedEntity = m_entities.emplace_back(std::make_unique<Entity>(this)).get();
         return spawnedEntity;
     }
 
@@ -28,7 +28,7 @@ namespace jate::models
         }
     }
 
-    void World::onComponentAdded(components::AComponent& component)
+    void World::onComponentAdded(components::AComponent* component)
     {
         for (const auto& system : m_systems)
         {
@@ -36,7 +36,7 @@ namespace jate::models
         }
     }
 
-    void World::onComponentRemoved(components::AComponent& component)
+    void World::onComponentRemoved(components::AComponent* component)
     {
         for (const auto& system : m_systems)
         {

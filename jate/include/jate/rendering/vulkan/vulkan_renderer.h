@@ -10,6 +10,7 @@
 #include <jate/rendering/vulkan/vulkan_command_manager.h>
 
 #include <memory>
+#include <unordered_map>
 
 namespace jate::rendering::vulkan
 {
@@ -18,6 +19,15 @@ namespace jate::rendering::vulkan
     public:
         VulkanRenderer(Window& window);
         ~VulkanRenderer();
+
+
+        virtual renderer_memory_slot_id allocateVertexData(const std::vector<VertexData>& vertices) override;
+        virtual void freeVertexData(renderer_memory_slot_id slotId);
+
+        virtual renderer_memory_slot_id allocateIndexData(const std::vector<uint32_t>& indices) override;
+        virtual void freeIndexData(renderer_memory_slot_id slotId);
+
+        virtual void drawIndexed(renderer_memory_slot_id verticesSlotId, renderer_memory_slot_id indicesSlotId, const PushConstantData& pushConstantData) override;
 
     private:
         void init_createSwapChain();
@@ -50,9 +60,9 @@ namespace jate::rendering::vulkan
         const uint8_t MAX_FRAMES_IN_FLIGHT = 2;
         uint8_t m_currentFrameInFlight = 0;
 
-        // TEMPORARY
-        std::unique_ptr<VulkanVertexBuffer> m_testingVertexBuffer;
-        std::unique_ptr<VulkanIndexBuffer> m_testingIndexBuffer;
+        // Renderer memory slots
+        std::unordered_map<renderer_memory_slot_id, std::unique_ptr<VulkanVertexBuffer>> m_vertexBufferSlots;
+        std::unordered_map<renderer_memory_slot_id, std::unique_ptr<VulkanIndexBuffer>> m_indexBufferSlots;
     };
 }
 

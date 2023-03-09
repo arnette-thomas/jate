@@ -15,6 +15,10 @@ namespace jate::rendering::vulkan
 	public:
 		virtual ~AVulkanBuffer();
 
+		// No copy allowed - maybe implement that later ?
+        AVulkanBuffer(const AVulkanBuffer&) = delete;
+        AVulkanBuffer& operator=(const AVulkanBuffer&) = delete;
+
 		inline VkBuffer getVkBuffer() const { return m_buffer; }
 		inline VkDeviceSize getBufferOffset() const { return m_bufferOffset; }
 

@@ -14,14 +14,14 @@ namespace jate::systems
     public:
         RenderSystem(rendering::ARenderer* renderer);
 
-        virtual void onComponentAdded(components::AComponent& component) override;
-        virtual void onComponentRemoved(components::AComponent& component) override;
+        virtual void onComponentAdded(components::AComponent* component) override;
+        virtual void onComponentRemoved(components::AComponent* component) override;
         virtual void tick() override;
     
     private:
         rendering::ARenderer* m_renderer;
 
-        std::unordered_map<uint32_t, std::reference_wrapper<components::ARenderUnit>> m_renderUnitComponents;
+        std::unordered_map<uint32_t, components::ARenderUnit*> m_renderUnitComponents;
     };
 }
 
